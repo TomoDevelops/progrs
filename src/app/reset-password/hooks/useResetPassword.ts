@@ -120,7 +120,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
         // Redirect to login with success message
         router.push("/login?message=password-reset-success");
       }
-    } catch (_err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);

@@ -53,7 +53,7 @@ export const useLogin = (): UseLoginReturn => {
       } else {
         router.push("/");
       }
-    } catch (_err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -66,7 +66,7 @@ export const useLogin = (): UseLoginReturn => {
         provider: "google",
         callbackURL: "/",
       });
-    } catch (_err) {
+    } catch {
       setError("Failed to sign in with Google");
     }
   };

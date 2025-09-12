@@ -9,16 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  User,
   Settings,
   LogOut,
-  Dumbbell,
   Target,
-  TrendingUp,
   Plus,
   Play,
   Clock,
-  Calendar,
   BarChart3,
 } from "lucide-react";
 import { useState } from "react";

@@ -31,7 +31,7 @@ export const useSignup = (): UseSignupReturn => {
     setError("");
 
     try {
-      const { data: _authData, error } = await authClient.signUp.email({
+      const { error } = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         username: data.username,
@@ -46,7 +46,7 @@ export const useSignup = (): UseSignupReturn => {
             encodeURIComponent(data.email),
         );
       }
-    } catch (_err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -59,7 +59,7 @@ export const useSignup = (): UseSignupReturn => {
         provider: "google",
         callbackURL: "/",
       });
-    } catch (_err) {
+    } catch {
       setError("Failed to sign up with Google");
     }
   };

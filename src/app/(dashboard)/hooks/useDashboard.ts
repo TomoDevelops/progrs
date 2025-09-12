@@ -36,7 +36,7 @@ export const useDashboard = (): UseDashboardReturn => {
           return;
         }
         setUser(session.data.user as UserData);
-      } catch (_error) {
+      } catch {
         router.push("/login");
       } finally {
         setIsLoading(false);

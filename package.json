@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier . --write",
-    "db:push": "drizzle-kit push --config ./src/config/drizzle/drizzle.config.ts"
+    "db:push": "drizzle-kit push --config ./src/shared/config/drizzle/drizzle.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

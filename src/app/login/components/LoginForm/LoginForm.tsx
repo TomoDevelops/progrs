@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import type { UseLoginReturn } from "../../hooks/useLogin";
+import type { UseLoginReturn } from "@/app/login/hooks/useLogin";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

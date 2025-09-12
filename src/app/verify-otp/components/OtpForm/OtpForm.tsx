@@ -16,7 +16,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { UseOtpVerificationReturn } from "../../hooks/useOtpVerification";
+import type { UseOtpVerificationReturn } from "@/app/verify-otp/hooks/useOtpVerification";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete 6-digit code").max(6, "Code must be 6 digits"),

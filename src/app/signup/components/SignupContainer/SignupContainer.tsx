@@ -1,7 +1,7 @@
 "use client";
-import { useSignup } from "../../hooks/useSignup";
-import { SignupForm } from "../SignupForm";
-import { SignupHero } from "../SignupHero";
+import { useSignup } from "@/app/signup/hooks/useSignup";
+import { SignupForm } from "@/app/signup/components/SignupForm";
+import { SignupHero } from "@/app/signup/components/SignupHero";
 
 export const SignupContainer = () => {
     const signupState = useSignup();

@@ -1,4 +1,4 @@
-import { ForgotPasswordContainer } from "./components/ForgotPasswordContainer";
+import { ForgotPasswordContainer } from "@/app/forgot-password/components/ForgotPasswordContainer";
 
 export default function ForgotPasswordPage() {
     return <ForgotPasswordContainer />;

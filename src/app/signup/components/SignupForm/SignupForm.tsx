@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import type { UseSignupReturn } from "../../hooks/useSignup";
+import type { UseSignupReturn } from "@/app/signup/hooks/useSignup";
 import { useState } from "react";
 
 const signupSchema = z.object({

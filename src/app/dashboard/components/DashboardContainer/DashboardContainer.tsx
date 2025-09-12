@@ -1,7 +1,7 @@
 "use client";
 
-import { useDashboard } from "../../hooks/useDashboard";
-import { DashboardContent } from "../DashboardContent";
+import { useDashboard } from "@/app/dashboard/hooks/useDashboard";
+import { DashboardContent } from "@/app/dashboard/components/DashboardContent";
 
 export const DashboardContainer = () => {
   const dashboardState = useDashboard();

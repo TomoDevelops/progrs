@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import type { UseResetPasswordReturn } from "../../hooks/useResetPassword";
+import type { UseResetPasswordReturn } from "@/app/reset-password/hooks/useResetPassword";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),

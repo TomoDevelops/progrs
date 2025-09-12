@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Settings, LogOut, Dumbbell, Target, TrendingUp } from "lucide-react";
-import type { UseDashboardReturn } from "../../hooks/useDashboard";
+import type { UseDashboardReturn } from "@/app/dashboard/hooks/useDashboard";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;

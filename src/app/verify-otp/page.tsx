@@ -1,4 +1,4 @@
-import { OtpContainer } from "./components/OtpContainer";
+import { OtpContainer } from "@/app/verify-otp/components/OtpContainer";
 
 export default function VerifyOTPPage() {
     return <OtpContainer />;

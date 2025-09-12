@@ -12,7 +12,9 @@ import { user } from "./auth-schema";
 
 // Workout Routines
 export const workoutRoutines = pgTable("workout_routines", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -83,7 +85,9 @@ export const workoutSessions = pgTable(
 
 // Exercises
 export const exercises = pgTable("exercises", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   muscleGroup: text("muscle_group"),
   equipment: text("equipment"),
@@ -93,7 +97,9 @@ export const exercises = pgTable("exercises", {
 
 // Session Exercises
 export const sessionExercises = pgTable("session_exercises", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   sessionId: text("session_id")
     .notNull()
     .references(() => workoutSessions.id, { onDelete: "cascade" }),
@@ -105,7 +111,9 @@ export const sessionExercises = pgTable("session_exercises", {
 
 // Exercise Sets
 export const exerciseSets = pgTable("exercise_sets", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   sessionExerciseId: text("session_exercise_id")
     .notNull()
     .references(() => sessionExercises.id, { onDelete: "cascade" }),

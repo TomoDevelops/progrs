@@ -16,84 +16,80 @@ import {
   Play,
   Clock,
   BarChart3,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
+import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
 }
 
-// Mock data for demonstration
-const mockWorkoutHistory = [
-  {
-    id: 1,
-    name: "Push Day - Chest & Triceps",
-    emoji: "💪",
-    date: "2 hours ago",
-    duration: "45 min",
-    achievement: "PR: Bench Press 185 lbs",
-  },
-  {
-    id: 2,
-    name: "Leg Day - Squats & Deadlifts",
-    emoji: "🦵",
-    date: "Yesterday",
-    duration: "52 min",
-    achievement: "15,000 lbs total volume",
-  },
-  {
-    id: 3,
-    name: "Pull Day - Back & Biceps",
-    emoji: "🏋️",
-    date: "2 days ago",
-    duration: "38 min",
-    achievement: "PR: Pull-ups 12 reps",
-  },
-];
-
-const mockWeeklyData = [3, 2, 4, 1, 3, 2, 1]; // Workouts per day this week
-
-// Mock trending metrics data
-const mockMetricsData = {
-  weight: [
-    { date: "Jan 1", value: 135 },
-    { date: "Jan 8", value: 140 },
-    { date: "Jan 15", value: 145 },
-    { date: "Jan 22", value: 150 },
-    { date: "Jan 29", value: 155 },
-    { date: "Feb 5", value: 160 },
-    { date: "Feb 12", value: 165 },
-  ],
-  reps: [
-    { date: "Jan 1", value: 8 },
-    { date: "Jan 8", value: 10 },
-    { date: "Jan 15", value: 12 },
-    { date: "Jan 22", value: 10 },
-    { date: "Jan 29", value: 15 },
-    { date: "Feb 5", value: 12 },
-    { date: "Feb 12", value: 18 },
-  ],
-  duration: [
-    { date: "Jan 1", value: 30 },
-    { date: "Jan 8", value: 35 },
-    { date: "Jan 15", value: 45 },
-    { date: "Jan 22", value: 40 },
-    { date: "Jan 29", value: 50 },
-    { date: "Feb 5", value: 55 },
-    { date: "Feb 12", value: 60 },
-  ],
-};
-
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
-  const { user, isLoading, handleSignOut } = dashboardState;
+  const { user, isLoading: authLoading, handleSignOut } = dashboardState;
+  const {
+    stats,
+    today,
+    history,
+    consistency,
+    metrics,
+    isLoading: dataLoading,
+    isError,
+    error,
+  } = useDashboardData();
   const [selectedMetric, setSelectedMetric] = useState<
-    "weight" | "reps" | "duration"
+    "weight" | "improvement" | "percentage"
   >("weight");
 
-  const getMetricData = () => mockMetricsData[selectedMetric];
-  const getMetricMax = () =>
-    Math.max(...getMetricData().map((d) => d.value)) * 1.1;
+  const isLoading = authLoading || dataLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-red-600">
+            Error loading dashboard
+          </h2>
+          <p className="text-sm text-gray-600">
+            {error?.message || "Something went wrong"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform trending metrics data for chart display
+  const getMetricData = () => {
+    if (!metrics.data || metrics.data.length === 0) {
+      return [];
+    }
+
+    // For now, we'll show the improvement data as a simple chart
+    // In a real app, you might want to fetch historical data for proper trending
+    return metrics.data.map((metric, index) => ({
+      date: `Week ${index + 1}`,
+      value:
+        selectedMetric === "weight"
+          ? metric.currentWeight
+          : selectedMetric === "improvement"
+            ? metric.improvement
+            : metric.improvementPercentage,
+    }));
+  };
+
+  const getMetricMax = () => {
+    const data = getMetricData();
+    return data.length > 0 ? Math.max(...data.map((d) => d.value)) * 1.1 : 100;
+  };
 
   const getMetricPath = (isArea: boolean) => {
     const data = getMetricData();
@@ -132,10 +128,11 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     day: "numeric",
   });
 
-  const dailyGoalProgress = 75; // Mock progress percentage
-  const todaysWorkout = {
-    name: "Push Day - Chest & Triceps",
-    duration: "45-60 min",
+  const todaysWorkout = today.data || {
+    name: "No workout planned",
+    description: "Plan your workout for today",
+    estimatedDuration: null,
+    exercises: [],
   };
 
   return (
@@ -184,7 +181,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             <CardHeader>
               <CardTitle className="text-white">Today&apos;s Workout</CardTitle>
               <CardDescription className="text-blue-100">
-                {todaysWorkout.name}
+                {todaysWorkout.description || todaysWorkout.name}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -192,7 +189,9 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                 <div>
                   <p className="mb-2 text-sm text-blue-100">
                     <Clock className="mr-1 inline h-4 w-4" />
-                    {todaysWorkout.duration}
+                    {todaysWorkout.estimatedDuration
+                      ? `${todaysWorkout.estimatedDuration} min`
+                      : "Duration not set"}
                   </p>
                   <Button className="bg-white text-blue-600 hover:bg-blue-50">
                     <Play className="mr-2 h-4 w-4" />
@@ -218,43 +217,40 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             </div>
           </div>
 
-          {/* Daily Goal Progress */}
-          <Card className="lg:col-span-5">
+          {/* Summary Stats */}
+          <Card className="border-0 bg-gradient-to-r from-green-500 to-teal-600 text-white shadow-lg lg:col-span-5">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Target className="mr-2 h-5 w-5" />
-                Daily Goal
-              </CardTitle>
+              <CardTitle className="text-white">Your Progress</CardTitle>
+              <CardDescription className="text-green-100">
+                Keep up the great work!
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold">{dailyGoalProgress}%</div>
-                  <p className="text-sm text-gray-600">Workout completed</p>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Target className="mr-2 h-4 w-4" />
+                    <span className="text-sm">
+                      Total Workouts: {stats.data?.totalWorkouts || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span className="text-sm">
+                      Current Streak: {stats.data?.currentStreak || 0} days
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span className="text-sm">
+                      Avg Duration: {stats.data?.averageDuration || 0} min
+                    </span>
+                  </div>
+                  <Button className="mt-2 bg-white text-green-600 hover:bg-green-50">
+                    View Details
+                  </Button>
                 </div>
-                <div className="relative h-16 w-16">
-                  <svg
-                    className="h-16 w-16 -rotate-90 transform"
-                    viewBox="0 0 36 36"
-                  >
-                    <path
-                      className="text-gray-200"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className="text-blue-600"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeDasharray={`${dailyGoalProgress}, 100`}
-                      strokeLinecap="round"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                </div>
+                <div className="text-6xl opacity-20">📊</div>
               </div>
             </CardContent>
           </Card>
@@ -273,23 +269,36 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {mockWorkoutHistory.map((workout) => (
-                <div
-                  key={workout.id}
-                  className="flex items-center space-x-4 rounded-lg bg-gray-50 p-3"
-                >
-                  <div className="text-2xl">{workout.emoji}</div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{workout.name}</h4>
-                    <p className="text-sm text-gray-600">
-                      {workout.date} • {workout.duration}
-                    </p>
-                    <p className="text-sm font-medium text-blue-600">
-                      {workout.achievement}
-                    </p>
+              {history.data && history.data.length > 0 ? (
+                history.data.map((workout) => (
+                  <div
+                    key={workout.id}
+                    className="flex items-center space-x-4 rounded-lg bg-gray-50 p-3"
+                  >
+                    <div className="text-2xl">🏋️</div>
+                    <div className="flex-1">
+                      <h4 className="font-medium">{workout.routineName}</h4>
+                      <p className="text-sm text-gray-600">
+                        {workout.endedAt
+                          ? new Date(workout.endedAt).toLocaleDateString()
+                          : "In progress"}{" "}
+                        •
+                        {workout.totalDuration
+                          ? `${workout.totalDuration} min`
+                          : "Duration not recorded"}
+                      </p>
+                      <p className="text-sm font-medium text-blue-600">
+                        {workout.totalSets} sets • {workout.totalExercises}{" "}
+                        exercises
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No recent workouts found
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -326,7 +335,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>This Week</span>
+                  <span>Recent Days</span>
                   <Button variant="ghost" size="sm">
                     <BarChart3 className="h-4 w-4" />
                   </Button>
@@ -334,23 +343,50 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
               </CardHeader>
               <CardContent>
                 <div className="flex h-20 items-end justify-between space-x-2">
-                  {mockWeeklyData.map((count, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-1 flex-col items-center"
-                    >
-                      <div
-                        className="w-full rounded-t bg-blue-600"
-                        style={{
-                          height: `${(count / 4) * 100}%`,
-                          minHeight: "4px",
-                        }}
-                      />
-                      <span className="mt-1 text-xs text-gray-600">
-                        {["S", "M", "T", "W", "T", "F", "S"][index]}
-                      </span>
-                    </div>
-                  ))}
+                  {consistency.data && consistency.data.length > 0
+                    ? consistency.data.slice(-7).map((day, index) => {
+                        const maxWorkouts = Math.max(
+                          ...consistency.data.map((d) => d.workoutsCompleted),
+                          1,
+                        );
+                        return (
+                          <div
+                            key={index}
+                            className="flex flex-1 flex-col items-center"
+                          >
+                            <div
+                              className="w-full rounded-t bg-blue-600"
+                              style={{
+                                height: `${(day.workoutsCompleted / maxWorkouts) * 100}%`,
+                                minHeight: "4px",
+                              }}
+                            />
+                            <span className="mt-1 text-xs text-gray-600">
+                              {new Date(day.date)
+                                .toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                })
+                                .charAt(0)}
+                            </span>
+                          </div>
+                        );
+                      })
+                    : Array.from({ length: 7 }, (_, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-1 flex-col items-center"
+                        >
+                          <div
+                            className="w-full rounded-t bg-gray-200"
+                            style={{
+                              height: "4px",
+                            }}
+                          />
+                          <span className="mt-1 text-xs text-gray-600">
+                            {["S", "M", "T", "W", "T", "F", "S"][index]}
+                          </span>
+                        </div>
+                      ))}
                 </div>
               </CardContent>
             </Card>
@@ -372,20 +408,22 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                   Weight
                 </Button>
                 <Button
-                  variant={selectedMetric === "reps" ? "default" : "outline"}
+                  variant={
+                    selectedMetric === "improvement" ? "default" : "outline"
+                  }
                   size="sm"
-                  onClick={() => setSelectedMetric("reps")}
+                  onClick={() => setSelectedMetric("improvement")}
                 >
-                  Reps
+                  Improvement
                 </Button>
                 <Button
                   variant={
-                    selectedMetric === "duration" ? "default" : "outline"
+                    selectedMetric === "percentage" ? "default" : "outline"
                   }
                   size="sm"
-                  onClick={() => setSelectedMetric("duration")}
+                  onClick={() => setSelectedMetric("percentage")}
                 >
-                  Duration
+                  Percentage
                 </Button>
               </div>
             </CardHeader>

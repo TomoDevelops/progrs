@@ -7,9 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint",
-        "db:push": "drizzle-kit push",
-        "db:push:dev": "drizzle-kit push --config ./src/config/drizzle/drizzle.config.ts",
-        "db:push:prod": "drizzle-kit push --config ./src/config/drizzle/drizzle.config.ts"
+        "db:push": "drizzle-kit push --config ./src/config/drizzle/drizzle.config.ts"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.1",

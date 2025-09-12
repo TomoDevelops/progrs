@@ -41,7 +41,7 @@ export const auth = betterAuth({
         username(),
         twoFactor(),
         emailOTP({
-            async sendVerificationOTP({ email, otp, type }, request) {
+            async sendVerificationOTP({ email, otp, type }, _request) {
                 console.log("sendVerificationOTP", email, otp, type);
                 const subject =
                     type === "sign-in"

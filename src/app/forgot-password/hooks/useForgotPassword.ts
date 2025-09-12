@@ -48,7 +48,7 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
         redirectTo: "/reset-password",
       });
       setIsSuccess(true);
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);

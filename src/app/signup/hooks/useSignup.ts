@@ -31,7 +31,7 @@ export const useSignup = (): UseSignupReturn => {
     setError("");
 
     try {
-      const { data: authData, error } = await authClient.signUp.email({
+      const { data: _authData, error } = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         username: data.username,
@@ -43,7 +43,7 @@ export const useSignup = (): UseSignupReturn => {
       } else {
         router.push("/verify-otp?type=email-verification&email=" + encodeURIComponent(data.email));
       }
-    } catch (err) {
+    } catch (_err) {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -56,7 +56,7 @@ export const useSignup = (): UseSignupReturn => {
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to sign up with Google");
     }
   };

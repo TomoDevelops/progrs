@@ -108,7 +108,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
     try {
       if (isEmailVerification) {
-        const { data, error } = await authClient.emailOtp.verifyEmail({
+        const { data: _data, error } = await authClient.emailOtp.verifyEmail({
           email,
           otp: otpCode,
         });
@@ -124,7 +124,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
         sessionStorage.setItem("reset-email", email);
         router.push("/reset-password");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -165,7 +165,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
           inputRefs.current[0]?.focus();
         }
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to resend code");
     } finally {
       setIsResending(false);

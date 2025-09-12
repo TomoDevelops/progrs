@@ -16,7 +16,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { UseForgotPasswordReturn } from "../../hooks/useForgotPassword";
+import type { UseForgotPasswordReturn } from "@/app/forgot-password/hooks/useForgotPassword";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

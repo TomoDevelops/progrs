@@ -1,8 +1,8 @@
 "use client";
 
-import { useLogin } from "../../hooks/useLogin";
-import { LoginForm } from "../LoginForm";
-import { LoginHero } from "../LoginHero";
+import { useLogin } from "@/app/login/hooks/useLogin";
+import { LoginForm } from "@/app/login/components/LoginForm";
+import { LoginHero } from "@/app/login/components/LoginHero";
 
 export const LoginContainer = () => {
   const loginState = useLogin();

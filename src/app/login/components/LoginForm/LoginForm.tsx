@@ -59,7 +59,7 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
         password: data.password,
         rememberMe: data.rememberMe,
       });
-    } catch (err) {
+    } catch (_err) {
       // Error handling is done in the hook
     }
   };

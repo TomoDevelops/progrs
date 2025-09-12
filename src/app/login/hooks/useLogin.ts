@@ -51,7 +51,7 @@ export const useLogin = (): UseLoginReturn => {
       } else {
         router.push("/dashboard");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -64,7 +64,7 @@ export const useLogin = (): UseLoginReturn => {
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to sign in with Google");
     }
   };

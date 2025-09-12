@@ -274,7 +274,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
         {/* Middle Row - Workout History, Stats, and Trending Metrics */}
         <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Workout History Feed */}
-          <Card className="lg:col-span-4">
+          <Card className="lg:col-span-5">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="text-lg font-medium tracking-wide">
@@ -320,7 +320,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
           </Card>
 
           {/* Summary Stats Cards */}
-          <div className="space-y-6 lg:col-span-4">
+          <div className="space-y-6 lg:col-span-7">
             {/* This Week Stats */}
             <Card>
               <CardHeader>

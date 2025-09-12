@@ -51,7 +51,7 @@ export const useLogin = (): UseLoginReturn => {
       if (error) {
         setError(error.message || "Failed to sign in");
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
     } catch (_err) {
       setError("An unexpected error occurred");
@@ -64,7 +64,7 @@ export const useLogin = (): UseLoginReturn => {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       });
     } catch (_err) {
       setError("Failed to sign in with Google");

@@ -116,7 +116,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
         if (error) {
           setError(error.message || "Invalid verification code");
         } else {
-          router.push("/dashboard");
+          router.push("/");
         }
       } else if (isPasswordReset) {
         // Store OTP for password reset flow

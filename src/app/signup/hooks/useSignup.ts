@@ -57,7 +57,7 @@ export const useSignup = (): UseSignupReturn => {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       });
     } catch (_err) {
       setError("Failed to sign up with Google");

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export const SignupHero = () => {
   return (
     <div className="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 lg:flex lg:w-1/2">
@@ -10,10 +12,10 @@ export const SignupHero = () => {
             </div>
           </div>
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold">Join Progrs family!</h1>
-            <p className="max-w-md text-lg opacity-90">
-              Whoa, you wanna learn a new language like a native?
-            </p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-4xl font-bold">Join Progrs</h1>
+              <Image src="/muscle.png" alt="logo" width={50} height={50} />
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <div className="flex -space-x-2">

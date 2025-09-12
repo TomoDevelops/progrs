@@ -24,7 +24,7 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       setError("Please enter your email address");
       return;
@@ -56,7 +56,9 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
   };
 
   const handleContinue = () => {
-    router.push("/verify-otp?type=password-reset&email=" + encodeURIComponent(email));
+    router.push(
+      "/verify-otp?type=password-reset&email=" + encodeURIComponent(email),
+    );
   };
 
   return {

@@ -6,7 +6,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,7 +28,7 @@ import { useState } from "react";
 import type { UseLoginReturn } from "@/app/login/hooks/useLogin";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean(),
 });
@@ -34,12 +40,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ loginState }: LoginFormProps) => {
-  const {
-    isLoading,
-    error,
-    successMessage,
-    handleGoogleSignIn,
-  } = loginState;
+  const { isLoading, error, successMessage, handleGoogleSignIn } = loginState;
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -68,16 +69,16 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
     <div className="w-full max-w-md space-y-8">
       {/* Logo */}
       <div className="text-center">
-        <div className="flex items-center justify-center mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
+        <div className="mb-8 flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <span className="text-sm font-bold text-white">P</span>
           </div>
           <span className="ml-2 text-xl font-semibold">Progrs</span>
         </div>
       </div>
 
       <Card className="border-0 shadow-none">
-        <CardHeader className="text-center pb-6">
+        <CardHeader className="pb-6 text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription>
             Enter your email and password to access your account
@@ -85,13 +86,13 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
         </CardHeader>
         <CardContent className="space-y-6">
           {successMessage && (
-            <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
+            <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600">
               {successMessage}
             </div>
           )}
-          
+
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
               {error}
             </div>
           )}
@@ -134,9 +135,13 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         >
-                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -150,17 +155,15 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
                   control={form.control}
                   name="rememberMe"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex items-center space-y-0">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm">
-                          Remember me
-                        </FormLabel>
+                      <div className="leading-none">
+                        <FormLabel className="text-sm">Remember me</FormLabel>
                       </div>
                     </FormItem>
                   )}
@@ -175,7 +178,7 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-black hover:bg-gray-800 text-white"
+                className="h-12 w-full bg-black text-white hover:bg-gray-800"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing In..." : "Sign In"}
@@ -195,10 +198,10 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
           <Button
             type="button"
             variant="outline"
-            className="w-full h-12"
+            className="h-12 w-full"
             onClick={handleGoogleSignIn}
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -221,7 +224,10 @@ export const LoginForm = ({ loginState }: LoginFormProps) => {
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Don&apos;t have an account? </span>
-            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+            <Link
+              href="/signup"
+              className="font-medium text-blue-600 hover:underline"
+            >
               Sign Up
             </Link>
           </div>

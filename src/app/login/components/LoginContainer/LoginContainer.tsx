@@ -8,10 +8,10 @@ export const LoginContainer = () => {
   const loginState = useLogin();
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex min-h-screen">
       <LoginHero />
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
         <LoginForm loginState={loginState} />
       </div>
     </div>

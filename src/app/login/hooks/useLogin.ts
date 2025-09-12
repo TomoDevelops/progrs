@@ -15,7 +15,7 @@ export interface UseLoginReturn {
   isLoading: boolean;
   error: string;
   successMessage: string;
-  
+
   // Actions
   handleFormSubmit: (data: LoginFormData) => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
@@ -31,7 +31,9 @@ export const useLogin = (): UseLoginReturn => {
   useEffect(() => {
     const message = searchParams.get("message");
     if (message === "password-reset-success") {
-      setSuccessMessage("Password reset successfully! Please log in with your new password.");
+      setSuccessMessage(
+        "Password reset successfully! Please log in with your new password.",
+      );
     }
   }, [searchParams]);
 

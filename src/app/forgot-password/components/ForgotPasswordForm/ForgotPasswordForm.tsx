@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -25,10 +31,20 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 interface ForgotPasswordFormProps {
-  forgotPasswordState: Pick<UseForgotPasswordReturn, 'isLoading' | 'error' | 'isSuccess' | 'handleFormSubmit' | 'handleContinue' | 'email'>;
+  forgotPasswordState: Pick<
+    UseForgotPasswordReturn,
+    | "isLoading"
+    | "error"
+    | "isSuccess"
+    | "handleFormSubmit"
+    | "handleContinue"
+    | "email"
+  >;
 }
 
-export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormProps) => {
+export const ForgotPasswordForm = ({
+  forgotPasswordState,
+}: ForgotPasswordFormProps) => {
   const {
     isLoading,
     error,
@@ -51,29 +67,32 @@ export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormPr
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="w-full max-w-md">
           <Card>
-            <CardHeader className="text-center pb-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-green-600" />
+            <CardHeader className="pb-6 text-center">
+              <div className="mb-4 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <Mail className="h-6 w-6 text-green-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Check your email
+              </CardTitle>
               <CardDescription className="text-sm text-gray-600">
                 We sent a password reset link to <strong>{email}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-center space-y-4">
+              <div className="space-y-4 text-center">
                 <p className="text-sm text-gray-600">
-                  Click the link in the email to reset your password. If you don&apos;t see it, check your spam folder.
+                  Click the link in the email to reset your password. If you
+                  don&apos;t see it, check your spam folder.
                 </p>
-                
+
                 <Button
                   onClick={handleContinue}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                  className="h-12 w-full bg-blue-600 hover:bg-blue-700"
                 >
                   Continue to verification
                 </Button>
@@ -84,7 +103,7 @@ export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormPr
                   href="/login"
                   className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  <ArrowLeft className="mr-1 h-4 w-4" />
                   Back to login
                 </Link>
               </div>
@@ -96,29 +115,34 @@ export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormPr
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
         <Card>
-          <CardHeader className="text-center pb-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Mail className="w-6 h-6 text-blue-600" />
+          <CardHeader className="pb-6 text-center">
+            <div className="mb-4 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                <Mail className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Forgot password?</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Forgot password?
+            </CardTitle>
             <CardDescription className="text-sm text-gray-600">
               No worries, we&apos;ll send you reset instructions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -140,7 +164,7 @@ export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormPr
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                  className="h-12 w-full bg-blue-600 hover:bg-blue-700"
                   disabled={isLoading}
                 >
                   {isLoading ? "Sending..." : "Reset password"}
@@ -153,7 +177,7 @@ export const ForgotPasswordForm = ({ forgotPasswordState }: ForgotPasswordFormPr
                 href="/login"
                 className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800"
               >
-                <ArrowLeft className="w-4 h-4 mr-1" />
+                <ArrowLeft className="mr-1 h-4 w-4" />
                 Back to login
               </Link>
             </div>

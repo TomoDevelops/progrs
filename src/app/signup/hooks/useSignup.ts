@@ -15,7 +15,7 @@ export interface UseSignupReturn {
   // UI state
   isLoading: boolean;
   error: string;
-  
+
   // Actions
   handleFormSubmit: (data: SignupFormData) => Promise<void>;
   handleGoogleSignUp: () => Promise<void>;
@@ -41,7 +41,10 @@ export const useSignup = (): UseSignupReturn => {
       if (error) {
         setError(error.message || "Failed to create account");
       } else {
-        router.push("/verify-otp?type=email-verification&email=" + encodeURIComponent(data.email));
+        router.push(
+          "/verify-otp?type=email-verification&email=" +
+            encodeURIComponent(data.email),
+        );
       }
     } catch (_err) {
       setError("An unexpected error occurred");

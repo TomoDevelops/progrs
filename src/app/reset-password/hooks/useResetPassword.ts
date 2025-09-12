@@ -17,17 +17,17 @@ export interface UseResetPasswordReturn {
   setShowPassword: (show: boolean) => void;
   showConfirmPassword: boolean;
   setShowConfirmPassword: (show: boolean) => void;
-  
+
   // UI state
   isLoading: boolean;
   error: string;
   email: string;
   otp: string;
-  
+
   // Actions
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleFormSubmit: (password: string) => Promise<void>;
-  
+
   // Password validation
   validatePassword: (password: string) => string | null;
   getPasswordStrength: (password: string) => number;
@@ -52,18 +52,18 @@ export const useResetPassword = (): UseResetPasswordReturn => {
     // Get email and OTP from session storage
     const storedEmail = sessionStorage.getItem("reset-email");
     const storedOtp = sessionStorage.getItem("reset-otp");
-    
+
     if (!storedEmail || !storedOtp) {
       router.push("/forgot-password");
       return;
     }
-    
+
     setEmail(storedEmail);
     setOtp(storedOtp);
   }, [router]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validatePassword = (password: string) => {
@@ -84,7 +84,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -116,7 +116,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
         // Clear session storage
         sessionStorage.removeItem("reset-email");
         sessionStorage.removeItem("reset-otp");
-        
+
         // Redirect to login with success message
         router.push("/login?message=password-reset-success");
       }

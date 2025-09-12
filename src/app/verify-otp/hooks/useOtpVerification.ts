@@ -34,10 +34,10 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const email = searchParams.get("email") || "";
   const type = searchParams.get("type") || "email-verification";
-  
+
   const isEmailVerification = type === "email-verification";
   const isPasswordReset = type === "password-reset";
 
@@ -62,7 +62,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
         newOtp[i] = pastedCode[i];
       }
       setOtp(newOtp);
-      
+
       // Focus last filled input or next empty one
       const nextIndex = Math.min(pastedCode.length, 5);
       inputRefs.current[nextIndex]?.focus();
@@ -88,7 +88,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const otpCode = otp.join("");
-    
+
     if (otpCode.length !== 6) {
       setError("Please enter the complete 6-digit code");
       return;
@@ -133,7 +133,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
   const handleResendOTP = async () => {
     if (countdown > 0) return;
-    
+
     setIsResending(true);
     setError("");
 
@@ -154,7 +154,9 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
       } else if (isPasswordReset) {
         const { error } = await authClient.forgetPassword({
           email,
-          redirectTo: "/verify-otp?type=password-reset&email=" + encodeURIComponent(email),
+          redirectTo:
+            "/verify-otp?type=password-reset&email=" +
+            encodeURIComponent(email),
         });
 
         if (error) {

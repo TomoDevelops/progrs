@@ -5,60 +5,60 @@ import { nextCookies } from "better-auth/next-js";
 import { betterAuth } from "better-auth";
 import { Resend } from "resend";
 import {
-    account,
-    session,
-    user,
-    verification,
-    twoFactor as twoFactorTable,
+  account,
+  session,
+  user,
+  verification,
+  twoFactor as twoFactorTable,
 } from "@/db/schema/auth-schema";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
-    database: drizzleAdapter(db, {
-        provider: "pg",
-        schema: {
-            user,
-            session,
-            verification,
-            account,
-            twoFactor: twoFactorTable,
-        },
-    }),
-    appName: process.env.APP_NAME || "Progrs",
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-    secret: process.env.BETTER_AUTH_SECRET!,
-    emailAndPassword: {
-        enabled: true,
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user,
+      session,
+      verification,
+      account,
+      twoFactor: twoFactorTable,
     },
-    socialProviders: {
-        google: {
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        },
+  }),
+  appName: process.env.APP_NAME || "Progrs",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET!,
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
-    plugins: [
-        username(),
-        twoFactor(),
-        emailOTP({
-            async sendVerificationOTP({ email, otp, type }, _request) {
-                console.log("sendVerificationOTP", email, otp, type);
-                const subject =
-                    type === "sign-in"
-                        ? "Sign in to your account"
-                        : type === "email-verification"
-                        ? "Verify your email address"
-                        : "Reset your password";
+  },
+  plugins: [
+    username(),
+    twoFactor(),
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }, _request) {
+        console.log("sendVerificationOTP", email, otp, type);
+        const subject =
+          type === "sign-in"
+            ? "Sign in to your account"
+            : type === "email-verification"
+              ? "Verify your email address"
+              : "Reset your password";
 
-                const html = `
+        const html = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2>Your verification code</h2>
                         <p>Use this code to ${
-                            type === "sign-in"
-                                ? "sign in"
-                                : type === "email-verification"
-                                ? "verify your email"
-                                : "reset your password"
+                          type === "sign-in"
+                            ? "sign in"
+                            : type === "email-verification"
+                              ? "verify your email"
+                              : "reset your password"
                         }:</p>
                         <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 20px 0;">
                             ${otp}
@@ -68,15 +68,15 @@ export const auth = betterAuth({
                     </div>
                 `;
 
-                await resend.emails.send({
-                    from: process.env.EMAIL_FROM!,
-                    to: email,
-                    subject,
-                    html,
-                });
-            },
-        }),
-        oneTap(),
-        nextCookies(),
-    ],
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM!,
+          to: email,
+          subject,
+          html,
+        });
+      },
+    }),
+    oneTap(),
+    nextCookies(),
+  ],
 });

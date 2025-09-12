@@ -17,7 +17,7 @@ export interface UseDashboardReturn {
   // State
   user: UserData | null;
   isLoading: boolean;
-  
+
   // Actions
   handleSignOut: () => Promise<void>;
 }

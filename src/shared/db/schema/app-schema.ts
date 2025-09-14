@@ -95,6 +95,27 @@ export const exercises = pgTable("exercises", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Routine Exercises (for workout routine templates)
+export const routineExercises = pgTable("routine_exercises", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  routineId: text("routine_id")
+    .notNull()
+    .references(() => workoutRoutines.id, { onDelete: "cascade" }),
+  exerciseId: text("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "cascade" }),
+  orderIndex: integer("order_index").notNull(),
+  sets: integer("sets").notNull(),
+  minReps: integer("min_reps"),
+  maxReps: integer("max_reps"),
+  targetWeight: decimal("target_weight", { precision: 8, scale: 2 }),
+  restTime: integer("rest_time"), // in seconds
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Session Exercises
 export const sessionExercises = pgTable("session_exercises", {
   id: text("id")

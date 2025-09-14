@@ -10,8 +10,6 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import {
-  Settings,
-  LogOut,
   Target,
   Play,
   Clock,
@@ -19,10 +17,15 @@ import {
   Loader2,
   Dumbbell,
 } from "lucide-react";
-import { useState } from "react";
+import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
+import { useState } from "react";
+import type { WorkoutHistoryItem } from "@/app/api/dashboard/repository/dashboard.repository";
+import { WorkoutDetailModal } from "@/features/dashboard/components/WorkoutDetailModal/WorkoutDetailModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
@@ -39,6 +42,15 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     isError,
     error,
   } = useDashboardData();
+  const [selectedWorkout, setSelectedWorkout] =
+    useState<WorkoutHistoryItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleWorkoutClick = (workout: WorkoutHistoryItem) => {
+    setSelectedWorkout(workout);
+    setIsModalOpen(true);
+  };
 
   const isLoading = authLoading || dataLoading;
 
@@ -97,34 +109,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600">
-                <span className="text-sm font-bold text-white">P</span>
-              </div>
-              <span className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-semibold text-transparent">
-                Progrs
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Button className="h-10 rounded-full bg-white text-black hover:bg-gray-50 has-[>svg]:px-5">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Button>
-              <Button
-                className="h-10 rounded-full bg-white text-black hover:bg-gray-50 has-[>svg]:px-5"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header onSignOut={handleSignOut} />
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -168,15 +153,23 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
           <p className="mt-2 text-gray-600">{currentDate}</p>
         </div>
 
-        {/* Quick Start Button */}
+        {/* Create New Button */}
         <div className="flex items-center justify-end">
-          <Button
-            size="lg"
-            className="h-14 w-40 rounded-full bg-slate-900 shadow-lg hover:bg-slate-800"
-          >
-            <Dumbbell className="h-9 w-9" />
-            <p className="text-sm text-white">Create New</p>
-          </Button>
+          <CreateWorkoutRoutineDialog
+            trigger={
+              <Button
+                size="lg"
+                className="h-14 w-40 rounded-full bg-slate-900 shadow-lg hover:bg-slate-800"
+              >
+                <Dumbbell className="h-9 w-9" />
+                <p className="text-sm text-white">Create New</p>
+              </Button>
+            }
+            onSuccess={() => {
+              // Invalidate and refetch dashboard data when a new routine is created
+              queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            }}
+          />
         </div>
 
         {/* Top Row - Today's Workout, Quick Start, Daily Goal */}
@@ -287,30 +280,48 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {history.data && history.data.length > 0 ? (
-                history.data.map((workout) => (
-                  <div
-                    key={workout.id}
-                    className="flex items-center space-x-4 rounded-lg bg-gray-50 p-3"
-                  >
-                    <div className="text-2xl">🏋️</div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{workout.routineName}</h4>
-                      <p className="text-sm text-gray-600">
-                        {workout.endedAt
-                          ? new Date(workout.endedAt).toLocaleDateString()
-                          : "In progress"}{" "}
-                        •
-                        {workout.totalDuration
-                          ? `${workout.totalDuration} min`
-                          : "Duration not recorded"}
-                      </p>
-                      <p className="text-sm font-medium text-blue-600">
-                        {workout.totalSets} sets • {workout.totalExercises}{" "}
-                        exercises
-                      </p>
+                history.data.slice(0, 3).map((workout, index) => {
+                  const exerciseImages = [
+                    "/all-in-one-training.png",
+                    "/barbell.png",
+                    "/dumbbell.png",
+                  ];
+                  const imageIndex = index % exerciseImages.length;
+
+                  return (
+                    <div
+                      key={workout.id}
+                      className="flex cursor-pointer items-center space-x-4 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
+                      onClick={() => handleWorkoutClick(workout)}
+                    >
+                      <div className="relative h-8 w-8">
+                        <Image
+                          src={exerciseImages[imageIndex]}
+                          alt="Exercise type"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{workout.routineName}</h4>
+                        <p className="text-sm text-gray-600">
+                          {workout.endedAt
+                            ? new Date(workout.endedAt).toLocaleDateString()
+                            : "In progress"}{" "}
+                          •
+                          {workout.totalDuration
+                            ? `${workout.totalDuration} min`
+                            : "Duration not recorded"}
+                        </p>
+                        <p className="text-sm font-medium text-blue-600">
+                          {workout.totalSets} sets • {workout.totalExercises}{" "}
+                          exercises
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-sm text-gray-600">
                   No recent workouts found
@@ -415,6 +426,13 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
           </div>
         </div>
       </main>
+
+      {/* Workout Detail Modal */}
+      <WorkoutDetailModal
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        selectedWorkout={selectedWorkout}
+      />
     </div>
   );
 };

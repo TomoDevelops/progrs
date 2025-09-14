@@ -57,6 +57,26 @@ export interface SummaryStats {
   totalWeightLifted: number;
 }
 
+export interface WorkoutSessionDetail {
+  id: string;
+  routineName: string;
+  startedAt: Date;
+  endedAt: Date | null;
+  totalDuration: number | null;
+  notes: string | null;
+  exercises: {
+    id: string;
+    name: string;
+    muscleGroup: string | null;
+    equipment: string | null;
+    sets: {
+      setNumber: number;
+      weight: number | null;
+      reps: number;
+    }[];
+  }[];
+}
+
 export class DashboardRepository {
   async getTodayPlannedWorkout(
     userId: string,
@@ -138,6 +158,7 @@ export class DashboardRepository {
     limit: number = 10,
     offset: number = 0,
   ): Promise<WorkoutHistoryItem[]> {
+    // Only get completed workout sessions
     const sessions = await db
       .select({
         id: workoutSessions.id,
@@ -306,6 +327,93 @@ export class DashboardRepository {
       currentStreak: 0, // Simplified for now
       longestStreak: 0, // Simplified for now
       totalWeightLifted: Math.round(Number(weightStats[0]?.totalWeight || 0)),
+    };
+  }
+
+  async getWorkoutSessionDetail(
+    userId: string,
+    sessionId: string,
+  ): Promise<WorkoutSessionDetail | null> {
+    // Get the workout session
+    const session = await db
+      .select({
+        id: workoutSessions.id,
+        routineName: workoutRoutines.name,
+        startedAt: workoutSessions.startedAt,
+        endedAt: workoutSessions.endedAt,
+        totalDuration: workoutSessions.totalDuration,
+        notes: workoutSessions.notes,
+      })
+      .from(workoutSessions)
+      .leftJoin(
+        workoutRoutines,
+        eq(workoutSessions.routineId, workoutRoutines.id),
+      )
+      .where(
+        and(
+          eq(workoutSessions.id, sessionId),
+          eq(workoutSessions.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (session.length === 0) {
+      return null;
+    }
+
+    const sessionData = session[0];
+
+    // Get exercises and their sets for this session
+    const exercisesWithSets = await db
+      .select({
+        exerciseId: sessionExercises.id,
+        exerciseName: sessionExercises.name,
+        muscleGroup: exercises.muscleGroup,
+        equipment: exercises.equipment,
+        setNumber: exerciseSets.setNumber,
+        weight: exerciseSets.weight,
+        reps: exerciseSets.reps,
+      })
+      .from(sessionExercises)
+      .leftJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
+      .leftJoin(
+        exerciseSets,
+        eq(sessionExercises.id, exerciseSets.sessionExerciseId),
+      )
+      .where(eq(sessionExercises.sessionId, sessionId))
+      .orderBy(sessionExercises.orderIndex, exerciseSets.setNumber);
+
+    // Group exercises and their sets
+    const exerciseMap = new Map();
+    
+    exercisesWithSets.forEach((row) => {
+      if (!exerciseMap.has(row.exerciseId)) {
+        exerciseMap.set(row.exerciseId, {
+          id: row.exerciseId,
+          name: row.exerciseName,
+          muscleGroup: row.muscleGroup,
+          equipment: row.equipment,
+          sets: [],
+        });
+      }
+      
+      if (row.setNumber !== null) {
+        exerciseMap.get(row.exerciseId).sets.push({
+          setNumber: row.setNumber,
+          weight: row.weight ? Number(row.weight) : null,
+          reps: row.reps,
+        });
+      }
+    });
+
+    return {
+      id: sessionData.id,
+      routineName: sessionData.routineName || "Custom Workout",
+      startedAt: sessionData.startedAt,
+      endedAt: sessionData.endedAt,
+      totalDuration: sessionData.totalDuration,
+      notes: sessionData.notes,
+      exercises: Array.from(exerciseMap.values()),
     };
   }
 }

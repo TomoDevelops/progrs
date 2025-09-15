@@ -25,17 +25,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get today's planned workout
-    const todayWorkout = await dashboardService.getTodayWorkout(
+    // Get today's planned workouts
+    const todayWorkouts = await dashboardService.getTodayWorkouts(
       session.user.id,
     );
 
-    const response: ApiSuccessResponse<typeof todayWorkout> = {
+    const response: ApiSuccessResponse<typeof todayWorkouts> = {
       success: true,
-      data: todayWorkout,
-      message: todayWorkout
-        ? "Today's workout retrieved successfully"
-        : "No workout scheduled for today",
+      data: todayWorkouts,
+      message: todayWorkouts.length > 0
+        ? "Today's workouts retrieved successfully"
+        : "No workouts scheduled for today",
     };
 
     return NextResponse.json(response, { status: 200 });

@@ -11,7 +11,6 @@ import {
 } from "@/shared/components/ui/card";
 import {
   Target,
-  Play,
   Clock,
   BarChart3,
   Loader2,
@@ -19,13 +18,17 @@ import {
 } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
-import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { useDashboardData, useTodayWorkouts } from "@/features/dashboard/hooks/useDashboardData";
 import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
 import { useState } from "react";
-import type { WorkoutHistoryItem } from "@/app/api/dashboard/repository/dashboard.repository";
+import { useRouter } from "next/navigation";
+import type { WorkoutHistoryItem, TodayWorkoutData } from "@/app/api/dashboard/repository/dashboard.repository";
 import { WorkoutDetailModal } from "@/features/dashboard/components/WorkoutDetailModal/WorkoutDetailModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { TodayWorkoutCarousel } from "@/features/dashboard/components/TodayWorkoutCarousel";
+import { formatDateForLocale } from "@/shared/utils/date";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
@@ -35,24 +38,69 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
   const {
     stats,
-    today,
     history,
     consistency,
     isLoading: dataLoading,
     isError,
     error,
   } = useDashboardData();
+  const {
+    data: todayWorkouts,
+    isLoading: workoutsLoading,
+    isError: workoutsError,
+  } = useTodayWorkouts();
   const [selectedWorkout, setSelectedWorkout] =
     useState<WorkoutHistoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const handleWorkoutClick = (workout: WorkoutHistoryItem) => {
     setSelectedWorkout(workout);
     setIsModalOpen(true);
   };
 
-  const isLoading = authLoading || dataLoading;
+  const handleStartWorkout = async (workout: TodayWorkoutData) => {
+    if (!workout.id) {
+      toast.error("Invalid workout selected");
+      return;
+    }
+
+    setIsStartingWorkout(true);
+    try {
+      const response = await fetch("/api/workout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "create",
+          routineId: workout.id,
+          name: workout.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start workout");
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.sessionId) {
+        toast.success("Workout started!");
+        router.push(`/workout-session/${result.data.sessionId}`);
+      } else {
+        throw new Error(result.error || "Failed to start workout");
+      }
+    } catch (error) {
+      console.error("Error starting workout:", error);
+      toast.error("Failed to start workout. Please try again.");
+    } finally {
+      setIsStartingWorkout(false);
+    }
+  };
+
+  const isLoading = authLoading || dataLoading || workoutsLoading;
 
   if (isLoading) {
     return (
@@ -62,7 +110,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     );
   }
 
-  if (isError) {
+  if (isError || workoutsError) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
@@ -92,19 +140,15 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const currentHour = new Date().getHours();
   const greeting =
     currentHour < 12 ? "morning" : currentHour < 18 ? "afternoon" : "evening";
-  const currentDate = new Date().toLocaleDateString("en-US", {
+  const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+  const currentDate = formatDateForLocale(new Date(), userLocale, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
-  const todaysWorkout = today.data || {
-    name: "No workout planned",
-    description: "Plan your workout for today",
-    estimatedDuration: null,
-    exercises: [],
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -174,43 +218,14 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
 
         {/* Top Row - Today's Workout, Quick Start, Daily Goal */}
         <div className="my-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Today's Planned Workout Card */}
-          <Card className="justify-between border-0 text-black lg:col-span-5">
-            <CardHeader>
-              <div className="flex justify-between">
-                <CardTitle className="text-lg font-medium tracking-wide">
-                  Today&apos;s Workout
-                </CardTitle>
-                <p className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="inline h-4 w-4" />
-                  {todaysWorkout.estimatedDuration
-                    ? `${todaysWorkout.estimatedDuration} min`
-                    : "Duration not set"}
-                </p>
-              </div>
-              <CardDescription className="text-blue-600">
-                {todaysWorkout.description || todaysWorkout.name}
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="justify-between">
-              <Button
-                // Disable start workout button if no workout is scheduled
-                disabled={todaysWorkout.estimatedDuration === null}
-                className="flex h-10 gap-2 rounded-full bg-gray-700 text-gray-50 hover:bg-gray-600 has-[>svg]:px-4"
-              >
-                <Play className="h-4 w-4" />
-                Start Workout
-              </Button>
-              <div className="text-6xl opacity-50">
-                <Image
-                  src="/muscle.png"
-                  alt="Muscle icon"
-                  height={50}
-                  width={50}
-                />
-              </div>
-            </CardFooter>
-          </Card>
+          {/* Today's Planned Workout Carousel */}
+          <div className="lg:col-span-5">
+            <TodayWorkoutCarousel
+              workouts={todayWorkouts || []}
+              onStartWorkout={handleStartWorkout}
+              isStartingWorkout={isStartingWorkout}
+            />
+          </div>
 
           {/* Summary Stats */}
           <Card className="border-0 text-black lg:col-span-7">
@@ -307,7 +322,11 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                         <h4 className="font-medium">{workout.routineName}</h4>
                         <p className="text-sm text-gray-600">
                           {workout.endedAt
-                            ? new Date(workout.endedAt).toLocaleDateString()
+                            ? formatDateForLocale(new Date(workout.endedAt), userLocale, {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })
                             : "In progress"}{" "}
                           •
                           {workout.totalDuration
@@ -395,11 +414,9 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                               }}
                             />
                             <span className="mt-1 text-xs text-gray-600">
-                              {new Date(day.date)
-                                .toLocaleDateString("en-US", {
-                                  weekday: "short",
-                                })
-                                .charAt(0)}
+                              {formatDateForLocale(new Date(day.date), userLocale, {
+                                weekday: "short",
+                              }).charAt(0)}
                             </span>
                           </div>
                         );

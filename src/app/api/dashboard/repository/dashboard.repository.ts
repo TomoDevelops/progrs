@@ -4,11 +4,13 @@ import {
   routineSchedule,
   workoutSessions,
   exercises,
+  routineExercises,
   sessionExercises,
   exerciseSets,
   personalRecords,
 } from "@/shared/db/schema/app-schema";
 import { eq, desc, gte, lte, and, count, avg, sql } from "drizzle-orm";
+import { getTodayUTC, getUTCDateRange } from "@/shared/utils/date";
 
 export interface TodayWorkoutData {
   id: string;
@@ -78,13 +80,13 @@ export interface WorkoutSessionDetail {
 }
 
 export class DashboardRepository {
-  async getTodayPlannedWorkout(
+  async getTodayPlannedWorkouts(
     userId: string,
-  ): Promise<TodayWorkoutData | null> {
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+  ): Promise<TodayWorkoutData[]> {
+    const today = getTodayUTC(); // Get today's date in UTC
 
-    // Get today's scheduled routine
-    const scheduledRoutine = await db
+    // Get today's scheduled routines
+    const scheduledRoutines = await db
       .select({
         routineId: routineSchedule.routineId,
         routine: {
@@ -105,52 +107,56 @@ export class DashboardRepository {
           eq(routineSchedule.scheduledDate, today),
           eq(workoutRoutines.isActive, true),
         ),
-      )
-      .limit(1);
+      );
 
-    if (scheduledRoutine.length === 0) {
-      return null;
+    if (scheduledRoutines.length === 0) {
+      return [];
     }
 
-    const routine = scheduledRoutine[0].routine;
+    // Get exercises for each routine
+    const workoutsWithExercises = await Promise.all(
+      scheduledRoutines.map(async (scheduledRoutine) => {
+        const routine = scheduledRoutine.routine;
+        
+        // Get exercises for this routine from the routine template
+        const routineExercisesList = await db
+          .select({
+            exercise: {
+              id: exercises.id,
+              name: exercises.name,
+              muscleGroup: exercises.muscleGroup,
+              equipment: exercises.equipment,
+            },
+          })
+          .from(routineExercises)
+          .innerJoin(exercises, eq(routineExercises.exerciseId, exercises.id))
+          .where(eq(routineExercises.routineId, routine.id))
+          .orderBy(routineExercises.orderIndex);
 
-    // Get exercises for this routine from the most recent session
-    const routineExercises = await db
-      .select({
-        exercise: {
-          id: exercises.id,
-          name: exercises.name,
-          muscleGroup: exercises.muscleGroup,
-          equipment: exercises.equipment,
-        },
+        return {
+          id: routine.id,
+          name: routine.name,
+          description: routine.description,
+          estimatedDuration: routine.estimatedDuration,
+          exercises: routineExercisesList.map((item) => ({
+            id: item.exercise.id,
+            name: item.exercise.name,
+            muscleGroup: item.exercise.muscleGroup || "Unknown",
+            equipment: item.exercise.equipment,
+          })),
+        };
       })
-      .from(sessionExercises)
-      .innerJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
-      .innerJoin(
-        workoutSessions,
-        eq(sessionExercises.sessionId, workoutSessions.id),
-      )
-      .where(
-        and(
-          eq(workoutSessions.routineId, routine.id),
-          eq(workoutSessions.userId, userId),
-        ),
-      )
-      .orderBy(desc(workoutSessions.createdAt))
-      .limit(20);
+    );
 
-    return {
-      id: routine.id,
-      name: routine.name,
-      description: routine.description,
-      estimatedDuration: routine.estimatedDuration,
-      exercises: routineExercises.map((item) => ({
-        id: item.exercise.id,
-        name: item.exercise.name,
-        muscleGroup: item.exercise.muscleGroup || "Unknown",
-        equipment: item.exercise.equipment,
-      })),
-    };
+    return workoutsWithExercises;
+  }
+
+  // Keep the old method for backward compatibility
+  async getTodayPlannedWorkout(
+    userId: string,
+  ): Promise<TodayWorkoutData | null> {
+    const workouts = await this.getTodayPlannedWorkouts(userId);
+    return workouts.length > 0 ? workouts[0] : null;
   }
 
   async getWorkoutHistory(
@@ -209,9 +215,7 @@ export class DashboardRepository {
     userId: string,
     days: number = 30,
   ): Promise<ConsistencyData[]> {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - days);
+    const { startDate, endDate } = getUTCDateRange(days);
 
     const consistencyData = await db
       .select({

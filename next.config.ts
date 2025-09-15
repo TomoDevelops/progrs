@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ['pg'],
+  // Skip static optimization for API routes to prevent build-time errors
+  trailingSlash: false,
+  output: 'standalone',
 };
 
 export default nextConfig;

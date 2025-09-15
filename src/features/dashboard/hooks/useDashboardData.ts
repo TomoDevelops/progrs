@@ -7,6 +7,7 @@ import type {
   WorkoutHistoryItem,
   ConsistencyData,
 } from "@/app/api/dashboard/schemas/dashboard.schemas";
+import type { TodayWorkoutData } from "@/app/api/dashboard/repository/dashboard.repository";
 
 // API client functions
 const fetchDashboardStats = async (): Promise<SummaryStats> => {
@@ -18,10 +19,20 @@ const fetchDashboardStats = async (): Promise<SummaryStats> => {
   return result.data;
 };
 
-const fetchTodayWorkout = async (): Promise<TodayWorkout> => {
+const fetchTodayWorkout = async (): Promise<TodayWorkout | null> => {
   const response = await fetch("/api/dashboard/today");
   if (!response.ok) {
     throw new Error(`Failed to fetch today's workout: ${response.statusText}`);
+  }
+  const result = await response.json();
+  // Return first workout for backward compatibility
+  return result.data.length > 0 ? result.data[0] : null;
+};
+
+const fetchTodayWorkouts = async (): Promise<TodayWorkoutData[]> => {
+  const response = await fetch("/api/dashboard/today");
+  if (!response.ok) {
+    throw new Error(`Failed to fetch today's workouts: ${response.statusText}`);
   }
   const result = await response.json();
   return result.data;
@@ -72,6 +83,14 @@ export const useTodayWorkout = () => {
   return useQuery({
     queryKey: ["dashboard", "today"],
     queryFn: fetchTodayWorkout,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+export const useTodayWorkouts = () => {
+  return useQuery({
+    queryKey: ["dashboard", "today-workouts"],
+    queryFn: fetchTodayWorkouts,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };

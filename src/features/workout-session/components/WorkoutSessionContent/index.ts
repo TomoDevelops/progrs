@@ -1,0 +1,1 @@
+export { WorkoutSessionContent } from './WorkoutSessionContent';

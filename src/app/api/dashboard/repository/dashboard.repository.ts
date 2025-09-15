@@ -4,11 +4,13 @@ import {
   routineSchedule,
   workoutSessions,
   exercises,
+  routineExercises,
   sessionExercises,
   exerciseSets,
   personalRecords,
 } from "@/shared/db/schema/app-schema";
 import { eq, desc, gte, lte, and, count, avg, sql } from "drizzle-orm";
+import { getTodayUTC, getUTCDateRange } from "@/shared/utils/date";
 
 export interface TodayWorkoutData {
   id: string;
@@ -57,14 +59,34 @@ export interface SummaryStats {
   totalWeightLifted: number;
 }
 
-export class DashboardRepository {
-  async getTodayPlannedWorkout(
-    userId: string,
-  ): Promise<TodayWorkoutData | null> {
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+export interface WorkoutSessionDetail {
+  id: string;
+  routineName: string;
+  startedAt: Date;
+  endedAt: Date | null;
+  totalDuration: number | null;
+  notes: string | null;
+  exercises: {
+    id: string;
+    name: string;
+    muscleGroup: string | null;
+    equipment: string | null;
+    sets: {
+      setNumber: number;
+      weight: number | null;
+      reps: number;
+    }[];
+  }[];
+}
 
-    // Get today's scheduled routine
-    const scheduledRoutine = await db
+export class DashboardRepository {
+  async getTodayPlannedWorkouts(
+    userId: string,
+  ): Promise<TodayWorkoutData[]> {
+    const today = getTodayUTC(); // Get today's date in UTC
+
+    // Get today's scheduled routines
+    const scheduledRoutines = await db
       .select({
         routineId: routineSchedule.routineId,
         routine: {
@@ -85,52 +107,56 @@ export class DashboardRepository {
           eq(routineSchedule.scheduledDate, today),
           eq(workoutRoutines.isActive, true),
         ),
-      )
-      .limit(1);
+      );
 
-    if (scheduledRoutine.length === 0) {
-      return null;
+    if (scheduledRoutines.length === 0) {
+      return [];
     }
 
-    const routine = scheduledRoutine[0].routine;
+    // Get exercises for each routine
+    const workoutsWithExercises = await Promise.all(
+      scheduledRoutines.map(async (scheduledRoutine) => {
+        const routine = scheduledRoutine.routine;
+        
+        // Get exercises for this routine from the routine template
+        const routineExercisesList = await db
+          .select({
+            exercise: {
+              id: exercises.id,
+              name: exercises.name,
+              muscleGroup: exercises.muscleGroup,
+              equipment: exercises.equipment,
+            },
+          })
+          .from(routineExercises)
+          .innerJoin(exercises, eq(routineExercises.exerciseId, exercises.id))
+          .where(eq(routineExercises.routineId, routine.id))
+          .orderBy(routineExercises.orderIndex);
 
-    // Get exercises for this routine from the most recent session
-    const routineExercises = await db
-      .select({
-        exercise: {
-          id: exercises.id,
-          name: exercises.name,
-          muscleGroup: exercises.muscleGroup,
-          equipment: exercises.equipment,
-        },
+        return {
+          id: routine.id,
+          name: routine.name,
+          description: routine.description,
+          estimatedDuration: routine.estimatedDuration,
+          exercises: routineExercisesList.map((item) => ({
+            id: item.exercise.id,
+            name: item.exercise.name,
+            muscleGroup: item.exercise.muscleGroup || "Unknown",
+            equipment: item.exercise.equipment,
+          })),
+        };
       })
-      .from(sessionExercises)
-      .innerJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
-      .innerJoin(
-        workoutSessions,
-        eq(sessionExercises.sessionId, workoutSessions.id),
-      )
-      .where(
-        and(
-          eq(workoutSessions.routineId, routine.id),
-          eq(workoutSessions.userId, userId),
-        ),
-      )
-      .orderBy(desc(workoutSessions.createdAt))
-      .limit(20);
+    );
 
-    return {
-      id: routine.id,
-      name: routine.name,
-      description: routine.description,
-      estimatedDuration: routine.estimatedDuration,
-      exercises: routineExercises.map((item) => ({
-        id: item.exercise.id,
-        name: item.exercise.name,
-        muscleGroup: item.exercise.muscleGroup || "Unknown",
-        equipment: item.exercise.equipment,
-      })),
-    };
+    return workoutsWithExercises;
+  }
+
+  // Keep the old method for backward compatibility
+  async getTodayPlannedWorkout(
+    userId: string,
+  ): Promise<TodayWorkoutData | null> {
+    const workouts = await this.getTodayPlannedWorkouts(userId);
+    return workouts.length > 0 ? workouts[0] : null;
   }
 
   async getWorkoutHistory(
@@ -138,6 +164,7 @@ export class DashboardRepository {
     limit: number = 10,
     offset: number = 0,
   ): Promise<WorkoutHistoryItem[]> {
+    // Only get completed workout sessions
     const sessions = await db
       .select({
         id: workoutSessions.id,
@@ -188,9 +215,7 @@ export class DashboardRepository {
     userId: string,
     days: number = 30,
   ): Promise<ConsistencyData[]> {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - days);
+    const { startDate, endDate } = getUTCDateRange(days);
 
     const consistencyData = await db
       .select({
@@ -306,6 +331,93 @@ export class DashboardRepository {
       currentStreak: 0, // Simplified for now
       longestStreak: 0, // Simplified for now
       totalWeightLifted: Math.round(Number(weightStats[0]?.totalWeight || 0)),
+    };
+  }
+
+  async getWorkoutSessionDetail(
+    userId: string,
+    sessionId: string,
+  ): Promise<WorkoutSessionDetail | null> {
+    // Get the workout session
+    const session = await db
+      .select({
+        id: workoutSessions.id,
+        routineName: workoutRoutines.name,
+        startedAt: workoutSessions.startedAt,
+        endedAt: workoutSessions.endedAt,
+        totalDuration: workoutSessions.totalDuration,
+        notes: workoutSessions.notes,
+      })
+      .from(workoutSessions)
+      .leftJoin(
+        workoutRoutines,
+        eq(workoutSessions.routineId, workoutRoutines.id),
+      )
+      .where(
+        and(
+          eq(workoutSessions.id, sessionId),
+          eq(workoutSessions.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (session.length === 0) {
+      return null;
+    }
+
+    const sessionData = session[0];
+
+    // Get exercises and their sets for this session
+    const exercisesWithSets = await db
+      .select({
+        exerciseId: sessionExercises.id,
+        exerciseName: sessionExercises.name,
+        muscleGroup: exercises.muscleGroup,
+        equipment: exercises.equipment,
+        setNumber: exerciseSets.setNumber,
+        weight: exerciseSets.weight,
+        reps: exerciseSets.reps,
+      })
+      .from(sessionExercises)
+      .leftJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
+      .leftJoin(
+        exerciseSets,
+        eq(sessionExercises.id, exerciseSets.sessionExerciseId),
+      )
+      .where(eq(sessionExercises.sessionId, sessionId))
+      .orderBy(sessionExercises.orderIndex, exerciseSets.setNumber);
+
+    // Group exercises and their sets
+    const exerciseMap = new Map();
+    
+    exercisesWithSets.forEach((row) => {
+      if (!exerciseMap.has(row.exerciseId)) {
+        exerciseMap.set(row.exerciseId, {
+          id: row.exerciseId,
+          name: row.exerciseName,
+          muscleGroup: row.muscleGroup,
+          equipment: row.equipment,
+          sets: [],
+        });
+      }
+      
+      if (row.setNumber !== null) {
+        exerciseMap.get(row.exerciseId).sets.push({
+          setNumber: row.setNumber,
+          weight: row.weight ? Number(row.weight) : null,
+          reps: row.reps,
+        });
+      }
+    });
+
+    return {
+      id: sessionData.id,
+      routineName: sessionData.routineName || "Custom Workout",
+      startedAt: sessionData.startedAt,
+      endedAt: sessionData.endedAt,
+      totalDuration: sessionData.totalDuration,
+      notes: sessionData.notes,
+      exercises: Array.from(exerciseMap.values()),
     };
   }
 }

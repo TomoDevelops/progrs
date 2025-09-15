@@ -71,52 +71,57 @@ const fetchConsistencyData = async (
 };
 
 // React Query hooks
-export const useDashboardStats = () => {
+export const useDashboardStats = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "stats"],
     queryFn: fetchDashboardStats,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
   });
 };
 
-export const useTodayWorkout = () => {
+export const useTodayWorkout = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "today"],
     queryFn: fetchTodayWorkout,
     staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled,
   });
 };
 
-export const useTodayWorkouts = () => {
+export const useTodayWorkouts = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "today-workouts"],
     queryFn: fetchTodayWorkouts,
     staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled,
   });
 };
 
-export const useWorkoutHistory = (limit?: number) => {
+export const useWorkoutHistory = (limit?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "history", limit],
     queryFn: () => fetchWorkoutHistory(limit),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
   });
 };
 
-export const useConsistencyData = (days?: number) => {
+export const useConsistencyData = (days?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "consistency", days],
     queryFn: () => fetchConsistencyData(days),
     staleTime: 10 * 60 * 1000, // 10 minutes
+    enabled,
   });
 };
 
 // Combined hook for all dashboard data
-export const useDashboardData = () => {
-  const stats = useDashboardStats();
-  const today = useTodayWorkout();
-  const history = useWorkoutHistory(10); // Default to 10 recent workouts
-  const consistency = useConsistencyData(30); // Default to 30 days
+export const useDashboardData = (enabled: boolean = true) => {
+  const stats = useDashboardStats(enabled);
+  const today = useTodayWorkout(enabled);
+  const history = useWorkoutHistory(10, enabled); // Default to 10 recent workouts
+  const consistency = useConsistencyData(30, enabled); // Default to 30 days
 
   return {
     stats,

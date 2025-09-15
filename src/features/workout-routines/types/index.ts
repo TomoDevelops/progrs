@@ -11,7 +11,7 @@ export const routineExerciseSchema = z
     minReps: z.number().min(1, "Minimum reps must be at least 1").optional().nullable(),
     maxReps: z.number().min(1, "Maximum reps must be at least 1").optional().nullable(),
     targetWeight: z.number().min(0, "Weight cannot be negative").optional(),
-    restTime: z.number().min(0, "Rest time cannot be negative").optional(), // in seconds
+    restTime: z.number().min(60, "Rest time must be at least 1 minute").optional(), // in seconds
     notes: z.string().optional(),
   })
   .refine(

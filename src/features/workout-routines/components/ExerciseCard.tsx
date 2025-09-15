@@ -19,6 +19,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import { type WorkoutRoutine } from "@/features/workout-routines/types";
+import { RestTimeInput } from "./RestTimeInput";
 
 interface ExerciseCardProps {
   field: {
@@ -96,7 +97,7 @@ export function ExerciseCard({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <FormField
             control={form.control}
             name={`exercises.${index}.sets`}
@@ -160,24 +161,19 @@ export function ExerciseCard({
               </FormItem>
             )}
           />
+        </div>
 
+        <div className="grid grid-cols-1 gap-4">
           <FormField
             control={form.control}
             name={`exercises.${index}.restTime`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Rest (sec)</FormLabel>
+                <FormLabel>Rest Time</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? Number(e.target.value) : undefined,
-                      )
-                    }
+                  <RestTimeInput
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />

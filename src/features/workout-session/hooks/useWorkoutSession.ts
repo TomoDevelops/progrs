@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useBeforeUnload } from "@/shared/hooks/useBeforeUnload";
 import type {
   WorkoutSession,
   UpdateSetData,
@@ -159,22 +160,11 @@ export function useWorkoutSession(sessionId: string) {
     [session, sessionId, router],
   );
 
-  // Navigation guard
-  useEffect(() => {
-    if (!session?.isActive || isFinishingWorkout) return;
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue =
-        "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [session?.isActive, isFinishingWorkout]);
+  // Navigation guard using custom hook
+  useBeforeUnload({
+    enabled: !!(session?.isActive && !isFinishingWorkout),
+    message: "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?"
+  });
 
   // Initial fetch
   useEffect(() => {

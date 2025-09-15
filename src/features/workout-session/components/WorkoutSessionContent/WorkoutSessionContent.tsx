@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -28,24 +28,19 @@ export function WorkoutSessionContent({
 }: WorkoutSessionContentProps) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isFinishDialogOpen, setIsFinishDialogOpen] = useState(false);
-  const [sessionDuration, setSessionDuration] = useState(session.currentDuration || 0);
   const [isRestTimerActive, setIsRestTimerActive] = useState(false);
   const [restTimeSeconds, setRestTimeSeconds] = useState(0);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  // Update session duration every minute
-  useEffect(() => {
-    if (!session.isActive) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const startTime = new Date(session.startedAt);
-      const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000 / 60);
-      setSessionDuration(duration);
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, [session.isActive, session.startedAt]);
+  // Calculate session duration as derived state
+  const sessionDuration = useMemo(() => {
+    if (!session.isActive || !session.startedAt) {
+      return session.currentDuration || 0;
+    }
+    const now = new Date();
+    const startTime = new Date(session.startedAt);
+    return Math.floor((now.getTime() - startTime.getTime()) / 1000 / 60);
+  }, [session.isActive, session.startedAt, session.currentDuration]);
 
   // Auto-advance to next exercise when all sets are completed
   useEffect(() => {

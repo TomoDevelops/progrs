@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Play, Pause, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { useTimer } from "@/shared/hooks/useTimer";
 
 interface RestTimerProps {
   restTimeSeconds: number;
@@ -21,23 +22,22 @@ export function RestTimer({
   isActive,
   className,
 }: RestTimerProps) {
-  const [timeLeft, setTimeLeft] = useState(restTimeSeconds);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const { timeLeft, isRunning, isCompleted, progressPercentage, start, pause, reset, toggle } = useTimer({
+    initialTime: restTimeSeconds,
+    onComplete,
+    autoStart: false,
+  });
 
-  // Reset timer when restTimeSeconds changes or when isActive becomes true
+  // Handle active state changes
   useEffect(() => {
     if (isActive) {
-      setTimeLeft(restTimeSeconds);
-      setIsRunning(true);
-      setIsCompleted(false);
+      reset(restTimeSeconds);
+      start();
     } else {
-      // When not active, show full time but don't run
-      setTimeLeft(restTimeSeconds);
-      setIsRunning(false);
-      setIsCompleted(false);
+      pause();
+      reset(restTimeSeconds);
     }
-  }, [isActive, restTimeSeconds]);
+  }, [isActive, restTimeSeconds, reset, start, pause]);
 
   // Format time as MM:SS
   const formatTime = useCallback((seconds: number) => {
@@ -46,37 +46,13 @@ export function RestTimer({
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   }, []);
 
-  // Calculate progress percentage
-  const progressPercentage = ((restTimeSeconds - timeLeft) / restTimeSeconds) * 100;
-
-  // Timer effect
-  useEffect(() => {
-    if (!isRunning || timeLeft <= 0 || isCompleted || !isActive) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        const newTime = prev - 1;
-        if (newTime <= 0) {
-          setIsCompleted(true);
-          setIsRunning(false);
-          // Use setTimeout to avoid state update during render
-          setTimeout(() => onComplete(), 0);
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isRunning, isCompleted, isActive, timeLeft, onComplete]);
-
   const handlePlayPause = () => {
     if (isCompleted) return;
-    setIsRunning(!isRunning);
+    toggle();
   };
 
   const handleCancel = () => {
-    setIsRunning(false);
+    pause();
     onCancel();
   };
 

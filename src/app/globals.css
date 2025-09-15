@@ -123,3 +123,58 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* RTL (Right-to-Left) Language Support */
+.rtl {
+  direction: rtl;
+}
+
+/* Calendar component RTL adjustments */
+.rtl .rdp {
+  direction: rtl;
+}
+
+.rtl .rdp-caption {
+  flex-direction: row-reverse;
+}
+
+.rtl .rdp-nav {
+  order: -1;
+}
+
+/* Button and form RTL adjustments */
+.rtl .justify-start {
+  justify-content: flex-end;
+}
+
+.rtl .text-left {
+  text-align: right;
+}
+
+.rtl .mr-2 {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+.rtl .ml-2 {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* Popover and dialog RTL adjustments */
+.rtl .data-\[side\=right\]:slide-in-from-left-2 {
+  --tw-enter-translate-x: 0.5rem;
+}
+
+.rtl .data-\[side\=left\]:slide-in-from-right-2 {
+  --tw-enter-translate-x: -0.5rem;
+}
+
+/* Icon positioning for RTL */
+.rtl .lucide {
+  transform: scaleX(-1);
+}
+
+.rtl .lucide.calendar {
+  transform: none; /* Calendar icon doesn't need flipping */
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { WorkoutSessionDetail } from '@/app/api/dashboard/repository/dashboard.repository';
 
 interface UseWorkoutDetailProps {
@@ -12,49 +12,32 @@ interface UseWorkoutDetailReturn {
   error: string | null;
 }
 
+const fetchWorkoutDetail = async (id: string): Promise<WorkoutSessionDetail> => {
+  const response = await fetch(`/api/dashboard/workout-session/${id}`);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch workout details');
+  }
+  
+  return data.data;
+};
+
 export const useWorkoutDetail = ({ workoutId, isOpen }: UseWorkoutDetailProps): UseWorkoutDetailReturn => {
-  const [workoutDetail, setWorkoutDetail] = useState<WorkoutSessionDetail | null>(null);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchWorkoutDetail = async (id: string) => {
-    setIsLoadingDetail(true);
-    setWorkoutDetail(null);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/dashboard/workout-session/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setWorkoutDetail(data.data);
-        } else {
-          setError(data.error || 'Failed to fetch workout details');
-        }
-      } else {
-        setError(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
-      console.error('Failed to fetch workout details:', err);
-      setError('Network error occurred');
-    } finally {
-      setIsLoadingDetail(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen && workoutId) {
-      fetchWorkoutDetail(workoutId);
-    } else {
-      // Reset state when modal closes or no workout selected
-      setWorkoutDetail(null);
-      setError(null);
-    }
-  }, [isOpen, workoutId]);
+  const { data: workoutDetail, isLoading: isLoadingDetail, error } = useQuery({
+    queryKey: ['workout-detail', workoutId],
+    queryFn: () => fetchWorkoutDetail(workoutId!),
+    enabled: isOpen && !!workoutId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1,
+  });
 
   return {
-    workoutDetail,
+    workoutDetail: workoutDetail || null,
     isLoadingDetail,
-    error,
+    error: error?.message || null,
   };
 };

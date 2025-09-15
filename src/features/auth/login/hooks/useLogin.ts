@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/shared/lib/auth-client";
 
@@ -24,18 +24,14 @@ export interface UseLoginReturn {
 export const useLogin = (): UseLoginReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const message = searchParams.get("message");
-    if (message === "password-reset-success") {
-      setSuccessMessage(
-        "Password reset successfully! Please log in with your new password.",
-      );
-    }
-  }, [searchParams]);
+  // Handle success message directly from searchParams without useEffect
+  const message = searchParams.get("message");
+  const successMessage = message === "password-reset-success" 
+    ? "Password reset successfully! Please log in with your new password."
+    : "";
 
   const handleFormSubmit = async (data: LoginFormData) => {
     setIsLoading(true);

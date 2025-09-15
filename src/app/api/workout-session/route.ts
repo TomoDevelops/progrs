@@ -6,7 +6,6 @@ import {
   exerciseSets,
   routineExercises,
   exercises,
-  workoutRoutines,
 } from "@/shared/db/schema/app-schema";
 import { auth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";

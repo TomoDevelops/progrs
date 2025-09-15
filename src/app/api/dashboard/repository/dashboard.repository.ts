@@ -113,9 +113,40 @@ export class DashboardRepository {
       return [];
     }
 
+    // Filter out routines that have already been completed today
+    const routinesNotCompleted = await Promise.all(
+      scheduledRoutines.map(async (scheduledRoutine) => {
+        // Check if this routine has been completed today
+        const completedSession = await db
+          .select({ id: workoutSessions.id })
+          .from(workoutSessions)
+          .where(
+            and(
+              eq(workoutSessions.userId, userId),
+              eq(workoutSessions.routineId, scheduledRoutine.routineId),
+              sql`DATE(${workoutSessions.endedAt}) = ${today}`,
+              sql`${workoutSessions.endedAt} IS NOT NULL`,
+            ),
+          )
+          .limit(1);
+
+        // Return the routine only if it hasn't been completed today
+        return completedSession.length === 0 ? scheduledRoutine : null;
+      })
+    );
+
+    // Filter out null values (completed routines)
+    const availableRoutines = routinesNotCompleted.filter(
+      (routine): routine is NonNullable<typeof routine> => routine !== null
+    );
+
+    if (availableRoutines.length === 0) {
+      return [];
+    }
+
     // Get exercises for each routine
     const workoutsWithExercises = await Promise.all(
-      scheduledRoutines.map(async (scheduledRoutine) => {
+      availableRoutines.map(async (scheduledRoutine) => {
         const routine = scheduledRoutine.routine;
         
         // Get exercises for this routine from the routine template
@@ -200,15 +231,33 @@ export class DashboardRepository {
       .limit(limit)
       .offset(offset);
 
-    return sessions.map((session) => ({
-      id: session.id,
-      routineName: session.routineName || "Custom Workout",
-      endedAt: session.endedAt,
-      totalDuration: session.totalDuration,
-      totalExercises: Number(session.exerciseCount),
-      totalSets: 0, // Will be calculated separately if needed
-      notes: session.notes,
-    }));
+    // Get total sets for each session
+    const sessionsWithSets = await Promise.all(
+      sessions.map(async (session) => {
+        const setsCount = await db
+          .select({
+            totalSets: count(exerciseSets.id),
+          })
+          .from(exerciseSets)
+          .innerJoin(
+            sessionExercises,
+            eq(exerciseSets.sessionExerciseId, sessionExercises.id),
+          )
+          .where(eq(sessionExercises.sessionId, session.id));
+
+        return {
+          id: session.id,
+          routineName: session.routineName || "Custom Workout",
+          endedAt: session.endedAt,
+          totalDuration: session.totalDuration,
+          totalExercises: Number(session.exerciseCount),
+          totalSets: Number(setsCount[0]?.totalSets || 0),
+          notes: session.notes,
+        };
+      })
+    );
+
+    return sessionsWithSets;
   }
 
   async getConsistencyData(

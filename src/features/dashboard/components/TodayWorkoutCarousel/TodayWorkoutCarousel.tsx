@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -33,21 +33,23 @@ export function TodayWorkoutCarousel({
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
 
-  useEffect(() => {
-    if (!api) {
+  const handleCarouselApiChange = useCallback((carouselApi: CarouselApi) => {
+    if (!carouselApi) {
+      setApi(undefined);
       return;
     }
 
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
+    setApi(carouselApi);
+    setCount(carouselApi.scrollSnapList().length);
+    setCurrent(carouselApi.selectedScrollSnap() + 1);
 
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
+    carouselApi.on("select", () => {
+      setCurrent(carouselApi.selectedScrollSnap() + 1);
     });
-  }, [api]);
+  }, []);
   if (!workouts || workouts.length === 0) {
     return (
-      <Card className="w-full">
+      <Card className="flex min-h-[320px] w-full flex-col">
         <CardContent className="flex flex-col items-center justify-center py-8">
           <Dumbbell className="text-muted-foreground mb-4 h-12 w-12" />
           <h3 className="mb-2 text-lg font-semibold">No Workout Planned</h3>
@@ -144,9 +146,9 @@ export function TodayWorkoutCarousel({
       </div>
 
       <div className="relative">
-        <Carousel setApi={setApi} className="w-full">
+        <Carousel setApi={handleCarouselApiChange} className="w-full">
           <CarouselContent>
-            {workouts.map((workout, index) => (
+            {workouts.map((workout, _index) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
               <CarouselItem key={workout.id}>
                 <Card className="flex min-h-[320px] w-full flex-col">
                   <CardHeader>

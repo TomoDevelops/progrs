@@ -9,21 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import {
-  Target,
-  Clock,
-  BarChart3,
-  Loader2,
-  Dumbbell,
-} from "lucide-react";
+import { Target, Clock, BarChart3, Loader2, Dumbbell } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
-import { useDashboardData, useTodayWorkouts } from "@/features/dashboard/hooks/useDashboardData";
+import {
+  useDashboardData,
+  useTodayWorkouts,
+} from "@/features/dashboard/hooks/useDashboardData";
 import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { WorkoutHistoryItem, TodayWorkoutData } from "@/app/api/dashboard/repository/dashboard.repository";
+import type {
+  WorkoutHistoryItem,
+  TodayWorkoutData,
+} from "@/app/api/dashboard/repository/dashboard.repository";
 import { WorkoutDetailModal } from "@/features/dashboard/components/WorkoutDetailModal/WorkoutDetailModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -36,6 +36,10 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
+  
+  // Only enable data fetching when user is authenticated and not loading
+  const isDataEnabled = !!user && !authLoading;
+  
   const {
     stats,
     history,
@@ -43,12 +47,12 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     isLoading: dataLoading,
     isError,
     error,
-  } = useDashboardData();
+  } = useDashboardData(isDataEnabled);
   const {
     data: todayWorkouts,
     isLoading: workoutsLoading,
     isError: workoutsError,
-  } = useTodayWorkouts();
+  } = useTodayWorkouts(isDataEnabled);
   const [selectedWorkout, setSelectedWorkout] =
     useState<WorkoutHistoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,15 +144,14 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const currentHour = new Date().getHours();
   const greeting =
     currentHour < 12 ? "morning" : currentHour < 18 ? "afternoon" : "evening";
-  const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+  const userLocale =
+    typeof navigator !== "undefined" ? navigator.language : "en-US";
   const currentDate = formatDateForLocale(new Date(), userLocale, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-
-
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -203,10 +206,10 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             trigger={
               <Button
                 size="lg"
-                className="h-14 w-40 rounded-full bg-slate-900 shadow-lg hover:bg-slate-800"
+                className="h-14 rounded-full bg-slate-900 shadow-lg hover:bg-slate-800"
               >
                 <Dumbbell className="h-9 w-9" />
-                <p className="text-sm text-white">Create New</p>
+                <p className="text-sm text-white">Create New Routine</p>
               </Button>
             }
             onSuccess={() => {
@@ -217,7 +220,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
         </div>
 
         {/* Top Row - Today's Workout, Quick Start, Daily Goal */}
-        <div className="my-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="my-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Today's Planned Workout Carousel */}
           <div className="lg:col-span-5">
             <TodayWorkoutCarousel
@@ -280,7 +283,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
         </div>
 
         {/* Middle Row - Workout History, Stats, and Trending Metrics */}
-        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Workout History Feed */}
           <Card className="lg:col-span-5">
             <CardHeader>
@@ -322,11 +325,15 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                         <h4 className="font-medium">{workout.routineName}</h4>
                         <p className="text-sm text-gray-600">
                           {workout.endedAt
-                            ? formatDateForLocale(new Date(workout.endedAt), userLocale, {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })
+                            ? formatDateForLocale(
+                                new Date(workout.endedAt),
+                                userLocale,
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )
                             : "In progress"}{" "}
                           •
                           {workout.totalDuration
@@ -414,9 +421,13 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                               }}
                             />
                             <span className="mt-1 text-xs text-gray-600">
-                              {formatDateForLocale(new Date(day.date), userLocale, {
-                                weekday: "short",
-                              }).charAt(0)}
+                              {formatDateForLocale(
+                                new Date(day.date),
+                                userLocale,
+                                {
+                                  weekday: "short",
+                                },
+                              ).charAt(0)}
                             </span>
                           </div>
                         );

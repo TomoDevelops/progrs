@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/shared/lib/auth-client";
+import { useAuthenticatedSession } from "@/shared/hooks/useSession";
 
 interface UserData {
   id: string;
@@ -23,28 +23,8 @@ export interface UseDashboardReturn {
 }
 
 export const useDashboard = (): UseDashboardReturn => {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const session = await authClient.getSession();
-        if (!session.data?.user) {
-          router.push("/login");
-          return;
-        }
-        setUser(session.data.user as UserData);
-      } catch {
-        router.push("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  const { data: sessionData, isLoading } = useAuthenticatedSession();
 
   const handleSignOut = async () => {
     try {
@@ -56,7 +36,7 @@ export const useDashboard = (): UseDashboardReturn => {
   };
 
   return {
-    user,
+    user: sessionData?.user || null,
     isLoading,
     handleSignOut,
   };

@@ -1,6 +1,7 @@
 # Use Bun base image
 FROM oven/bun:1 AS base
 WORKDIR /app
+ENV NODE_ENV=production
 
 # Install dependencies into temp directory
 # This will cache them and speed up future builds

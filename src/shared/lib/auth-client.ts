@@ -7,14 +7,15 @@ import {
   twoFactorClient,
   usernameClient,
 } from "better-auth/client/plugins";
+import { clientEnv } from "@/shared/config/env";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL,
   plugins: [
     inferAdditionalFields<typeof auth>(),
     oneTapClient({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
-    }),
+       clientId: clientEnv.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+     }),
     emailOTPClient(),
     twoFactorClient(),
     usernameClient(),

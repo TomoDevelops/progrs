@@ -22,6 +22,21 @@ You need to configure the following secrets in your GitHub repository:
 - **DOCKER_PASSWORD**: Your Docker Hub password or access token (recommended)
 - **DOKPLOY_WEBHOOK_URL**: The webhook URL from your Dokploy application (optional)
 
+#### Environment Variable Secrets:
+
+These secrets are passed as build arguments to Docker and must match your production environment:
+
+- **BETTER_AUTH_SECRET**: Secret key for Better Auth (generate a secure random string)
+- **BETTER_AUTH_URL**: Your production domain URL (e.g., https://yourdomain.com)
+- **NEXT_PUBLIC_BETTER_AUTH_URL**: Same as BETTER_AUTH_URL (client-side accessible)
+- **NEXT_PUBLIC_GOOGLE_CLIENT_ID**: Google OAuth client ID (client-side accessible)
+- **DATABASE_URL**: PostgreSQL connection string
+- **GOOGLE_CLIENT_ID**: Google OAuth client ID (server-side)
+- **GOOGLE_CLIENT_SECRET**: Google OAuth client secret
+- **RESEND_API_KEY**: Resend email service API key
+- **EMAIL_FROM**: Email address for sending emails (e.g., noreply@yourdomain.com)
+- **APP_NAME**: Your application name
+
 ### Dokploy Setup
 
 1. Create an application in Dokploy

@@ -11,8 +11,9 @@ import {
   verification,
   twoFactor as twoFactorTable,
 } from "@/shared/db/schema/auth-schema";
+import { serverEnv } from "@/shared/config/env";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = serverEnv.RESEND_API_KEY ? new Resend(serverEnv.RESEND_API_KEY) : null;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -26,15 +27,15 @@ export const auth = betterAuth({
     },
   }),
   appName: process.env.APP_NAME || "Progrs",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET!,
+  baseURL: serverEnv.BETTER_AUTH_URL,
+  secret: serverEnv.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: serverEnv.GOOGLE_CLIENT_ID || 'fallback-client-id',
+      clientSecret: serverEnv.GOOGLE_CLIENT_SECRET || 'fallback-client-secret',
     },
   },
   plugins: [
@@ -74,7 +75,7 @@ export const auth = betterAuth({
         }
         
         await resend.emails.send({
-          from: process.env.EMAIL_FROM!,
+          from: serverEnv.EMAIL_FROM || 'noreply@example.com',
           to: email,
           subject,
           html,

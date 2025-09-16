@@ -61,7 +61,7 @@ export function DraggableExerciseItem({
           <div
             {...listeners}
             className={cn(
-              "absolute top-1/2 left-2 z-10 -translate-y-1/2 cursor-grab rounded transition-all hover:bg-gray-100 active:cursor-grabbing",
+              "absolute top-1/2 left-1.5 z-10 -translate-y-1/2 cursor-grab rounded transition-all hover:bg-gray-100 active:cursor-grabbing",
               isCurrentlyDragging ? "opacity-0" : "opacity-100",
             )}
           >
@@ -97,7 +97,7 @@ export function DraggableExerciseItem({
         <div
           {...listeners}
           className={cn(
-            "absolute top-1/2 left-2 z-10 -translate-y-1/2 cursor-grab rounded p-1 transition-all hover:bg-gray-100 active:cursor-grabbing",
+            "absolute top-1/2 left-1.5 z-10 -translate-y-1/2 cursor-grab rounded p-1 transition-all hover:bg-gray-100 active:cursor-grabbing",
             isCurrentlyDragging ? "opacity-0" : "opacity-100",
           )}
         >

@@ -40,7 +40,7 @@ export function ExerciseList({
   selectedExercises,
   setSelectedExercises,
 }: ExerciseListProps) {
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "exercises",
   });
@@ -63,6 +63,18 @@ export function ExerciseList({
       targetWeight: undefined,
       restTime: 60,
       notes: "",
+    });
+  };
+
+  const handleExerciseRemove = (index: number, exerciseId: string) => {
+    // Remove from form field array
+    remove(index);
+    
+    // Remove from selected exercises
+    setSelectedExercises((prev) => {
+      const updated = { ...prev };
+      delete updated[exerciseId];
+      return updated;
     });
   };
 
@@ -124,7 +136,7 @@ export function ExerciseList({
                 index={originalIndex}
                 selectedExercises={selectedExercises}
                 form={form}
-                onRemove={() => {}} // Remove handled by DraggableExerciseList
+                onRemove={handleExerciseRemove}
               />
             );
           }}

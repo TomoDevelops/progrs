@@ -119,22 +119,22 @@ export const useConsistencyData = (days?: number, enabled: boolean = true) => {
 // Combined hook for all dashboard data
 export const useDashboardData = (enabled: boolean = true) => {
   const stats = useDashboardStats(enabled);
-  const today = useTodayWorkout(enabled);
+  const todayWorkouts = useTodayWorkouts(enabled);
   const history = useWorkoutHistory(10, enabled); // Default to 10 recent workouts
   const consistency = useConsistencyData(30, enabled); // Default to 30 days
 
   return {
     stats,
-    today,
+    todayWorkouts,
     history,
     consistency,
     isLoading:
       stats.isLoading ||
-      today.isLoading ||
+      todayWorkouts.isLoading ||
       history.isLoading ||
       consistency.isLoading,
     isError:
-      stats.isError || today.isError || history.isError || consistency.isError,
-    error: stats.error || today.error || history.error || consistency.error,
+      stats.isError || todayWorkouts.isError || history.isError || consistency.isError,
+    error: stats.error || todayWorkouts.error || history.error || consistency.error,
   };
 };

@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Play, Pause, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { useTimer } from "@/shared/hooks/useTimer";
+import { usePersistedTimer } from "@/shared/hooks/usePersistedTimer";
 
 interface RestTimerProps {
   restTimeSeconds: number;
@@ -13,6 +13,7 @@ interface RestTimerProps {
   onCancel: () => void;
   isActive: boolean;
   className?: string;
+  resetTrigger?: number; // Add trigger to force reset when new record is input
 }
 
 export function RestTimer({
@@ -21,23 +22,37 @@ export function RestTimer({
   onCancel,
   isActive,
   className,
+  resetTrigger,
 }: RestTimerProps) {
-  const { timeLeft, isRunning, isCompleted, progressPercentage, start, pause, reset, toggle } = useTimer({
+  const prevResetTriggerRef = useRef<number | undefined>(resetTrigger);
+  const { timeLeft, isRunning, isCompleted, progressPercentage, start, pause, reset, toggle } = usePersistedTimer({
     initialTime: restTimeSeconds,
     onComplete,
     autoStart: false,
+    storageKey: 'workout-rest-timer',
   });
+
+  // Handle reset trigger changes (new record input)
+  useEffect(() => {
+    if (resetTrigger !== undefined && resetTrigger !== prevResetTriggerRef.current) {
+      // Force reset when new record is input, even if timer is running
+      reset(restTimeSeconds);
+      prevResetTriggerRef.current = resetTrigger;
+    }
+  }, [resetTrigger, restTimeSeconds, reset]);
 
   // Handle active state changes
   useEffect(() => {
     if (isActive) {
-      reset(restTimeSeconds);
-      start();
+      // Only start if not already running (avoid interrupting ongoing timer)
+      if (!isRunning && !isCompleted) {
+        reset(restTimeSeconds);
+        start();
+      }
     } else {
       pause();
-      reset(restTimeSeconds);
     }
-  }, [isActive, restTimeSeconds, reset, start, pause]);
+  }, [isActive, restTimeSeconds, reset, start, pause, isRunning, isCompleted]);
 
   // Format time as MM:SS
   const formatTime = useCallback((seconds: number) => {

@@ -4,18 +4,13 @@ import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Target, Clock, BarChart3, Loader2, Dumbbell } from "lucide-react";
+import { Loader2, Dumbbell } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
-import {
-  useDashboardData,
-  useTodayWorkouts,
-} from "@/features/dashboard/hooks/useDashboardData";
+import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
 import { useState } from "react";
@@ -29,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TodayWorkoutCarousel } from "@/features/dashboard/components/TodayWorkoutCarousel";
 import { formatDateForLocale } from "@/shared/utils/date";
+import { ProgressChart } from "@/features/dashboard/components/ProgressChart";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
@@ -42,17 +38,13 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   
   const {
     stats,
+    todayWorkouts,
     history,
     consistency,
     isLoading: dataLoading,
     isError,
     error,
   } = useDashboardData(isDataEnabled);
-  const {
-    data: todayWorkouts,
-    isLoading: workoutsLoading,
-    isError: workoutsError,
-  } = useTodayWorkouts(isDataEnabled);
   const [selectedWorkout, setSelectedWorkout] =
     useState<WorkoutHistoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,7 +96,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     }
   };
 
-  const isLoading = authLoading || dataLoading || workoutsLoading;
+  const isLoading = authLoading || dataLoading;
 
   if (isLoading) {
     return (
@@ -114,7 +106,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     );
   }
 
-  if (isError || workoutsError) {
+  if (isError) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
@@ -224,62 +216,16 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
           {/* Today's Planned Workout Carousel */}
           <div className="lg:col-span-5">
             <TodayWorkoutCarousel
-              workouts={todayWorkouts || []}
+              workouts={todayWorkouts.data || []}
               onStartWorkout={handleStartWorkout}
               isStartingWorkout={isStartingWorkout}
             />
           </div>
 
-          {/* Summary Stats */}
-          <Card className="border-0 text-black lg:col-span-7">
-            <CardHeader>
-              <CardTitle className="text-lg font-medium tracking-wide">
-                Your Progress
-              </CardTitle>
-              <CardDescription className="text-green-600">
-                Keep up the great work!
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* TODO: Change this to a chart of progress over time */}
-              {/* Pill shaped select for a weekly/monthly/yearly view */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <Target className="mr-2 h-4 w-4" />
-                    <span className="text-sm">
-                      Total Workouts: {stats.data?.totalWorkouts || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    <span className="text-sm">
-                      Current Streak: {stats.data?.currentStreak || 0} days
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span className="text-sm">
-                      Avg Duration: {stats.data?.averageDuration || 0} min
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="justify-between">
-              <Button className="flex h-10 gap-2 rounded-full bg-gray-700 text-gray-50 hover:bg-gray-600 has-[>svg]:px-4">
-                View Details
-              </Button>
-              <div className="text-6xl opacity-50">
-                <Image
-                  src="/chart.png"
-                  alt="Chart icon"
-                  height={55}
-                  width={55}
-                />
-              </div>
-            </CardFooter>
-          </Card>
+          {/* Progress Chart */}
+          <div className="lg:col-span-7">
+            <ProgressChart />
+          </div>
         </div>
 
         {/* Middle Row - Workout History, Stats, and Trending Metrics */}
@@ -381,7 +327,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                     <div className="text-2xl font-bold text-purple-600">
                       12.5k
                     </div>
-                    <p className="text-sm text-gray-600">lbs lifted</p>
+                    <p className="text-sm text-gray-600">kg lifted</p>
                   </div>
                 </div>
               </CardContent>
@@ -395,7 +341,7 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                     Recent Days
                   </span>
                   <Button variant="ghost" size="sm">
-                    <BarChart3 className="h-4 w-4" />
+                    View Chart
                   </Button>
                 </CardTitle>
               </CardHeader>

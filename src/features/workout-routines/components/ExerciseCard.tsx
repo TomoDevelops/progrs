@@ -37,7 +37,7 @@ interface ExerciseCardProps {
     }
   >;
   form: UseFormReturn<WorkoutRoutine>;
-  onRemove: (index: number, exerciseId: string) => void;
+  onRemove?: (index: number, exerciseId: string) => void;
 }
 
 export function ExerciseCard({
@@ -69,14 +69,16 @@ export function ExerciseCard({
               </div>
             )}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemove(index, field.exerciseId)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {onRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove(index, field.exerciseId)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -188,7 +190,7 @@ export function ExerciseCard({
             name={`exercises.${index}.targetWeight`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Target Weight (lbs/kg)</FormLabel>
+                <FormLabel>Target Weight (kg)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

@@ -113,6 +113,57 @@ export function useWorkoutSession(sessionId: string) {
     [session],
   );
 
+  // Reorder exercises
+  const reorderExercises = useCallback(
+    async (reorderedExercises: WorkoutSession['exercises']) => {
+      if (!session) return;
+
+      try {
+        // Update local state optimistically
+        setSession((prevSession) => {
+          if (!prevSession) return prevSession;
+          return {
+            ...prevSession,
+            exercises: reorderedExercises,
+          };
+        });
+
+        // Prepare exercise orders for API
+        const exerciseOrders = reorderedExercises.map((exercise, index) => ({
+          sessionExerciseId: exercise.id,
+          orderIndex: index,
+        }));
+
+        // Send to server
+        const response = await fetch("/api/workout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "reorderExercises",
+            sessionId: session.id,
+            exerciseOrders,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          toast.success("Exercise order updated!");
+        } else {
+          throw new Error(result.error || "Failed to reorder exercises");
+        }
+      } catch (err) {
+        console.error("Error reordering exercises:", err);
+        toast.error("Failed to reorder exercises");
+        // Revert the change by refetching
+        fetchSession();
+      }
+    },
+    [session, fetchSession],
+  );
+
   // Finish session
   const finishSession = useCallback(
     async (data: FinishSessionData) => {
@@ -179,6 +230,7 @@ export function useWorkoutSession(sessionId: string) {
     error,
     updateSet,
     finishSession,
+    reorderExercises,
     isUpdatingSet,
     isFinishing,
     refetch: fetchSession,

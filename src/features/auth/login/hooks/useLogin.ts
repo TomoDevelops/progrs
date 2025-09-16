@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/shared/lib/auth-client";
 
 export interface LoginFormData {
@@ -26,12 +27,14 @@ export const useLogin = (): UseLoginReturn => {
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   // Handle success message directly from searchParams without useEffect
   const message = searchParams.get("message");
-  const successMessage = message === "password-reset-success" 
-    ? "Password reset successfully! Please log in with your new password."
-    : "";
+  const successMessage =
+    message === "password-reset-success"
+      ? "Password reset successfully! Please log in with your new password."
+      : "";
 
   const handleFormSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -46,9 +49,11 @@ export const useLogin = (): UseLoginReturn => {
 
       if (error) {
         setError(error.message || "Failed to sign in");
-      } else {
-        router.push("/");
+        return;
       }
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+
+      router.push("/");
     } catch {
       setError("An unexpected error occurred");
     } finally {

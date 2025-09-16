@@ -15,6 +15,7 @@ export default function WorkoutSessionPage() {
     error,
     updateSet,
     finishSession,
+    reorderExercises,
     isUpdatingSet,
     isFinishing,
   } = useWorkoutSession(sessionId);
@@ -59,6 +60,7 @@ export default function WorkoutSessionPage() {
       session={session}
       onUpdateSet={updateSet}
       onFinishSession={finishSession}
+      onReorderExercises={reorderExercises}
       isUpdatingSet={isUpdatingSet}
       isFinishing={isFinishing}
     />

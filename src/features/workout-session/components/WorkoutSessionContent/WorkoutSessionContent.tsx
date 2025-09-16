@@ -10,11 +10,13 @@ import { SessionHeader } from "../SessionHeader/index";
 import { ExerciseCard } from "../ExerciseCard/index";
 import { FinishWorkoutDialog } from "../FinishWorkoutDialog/index";
 import { RestTimer, CancelRestModal } from "../RestTimer/index";
+import { DraggableExerciseList, type DraggableExercise } from "@/shared/components/DraggableExerciseList";
 
 interface WorkoutSessionContentProps {
   session: WorkoutSession;
   onUpdateSet: (data: UpdateSetData) => Promise<void>;
   onFinishSession: (data: FinishSessionData) => Promise<void>;
+  onReorderExercises?: (reorderedExercises: WorkoutSession['exercises']) => Promise<void>;
   isUpdatingSet: boolean;
   isFinishing: boolean;
 }
@@ -23,6 +25,7 @@ export function WorkoutSessionContent({
   session,
   onUpdateSet,
   onFinishSession,
+  onReorderExercises,
   isUpdatingSet,
   isFinishing,
 }: WorkoutSessionContentProps) {
@@ -31,6 +34,7 @@ export function WorkoutSessionContent({
   const [isRestTimerActive, setIsRestTimerActive] = useState(false);
   const [restTimeSeconds, setRestTimeSeconds] = useState(0);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [resetTrigger, setResetTrigger] = useState<number>(0);
 
   // Calculate session duration as derived state
   const sessionDuration = useMemo(() => {
@@ -76,6 +80,9 @@ export function WorkoutSessionContent({
   const handleSetUpdate = async (data: UpdateSetData) => {
     await onUpdateSet(data);
     
+    // Trigger timer reset when new record is input (even if timer is running)
+    setResetTrigger(prev => prev + 1);
+    
     // Only start rest timer for new sets, not edits
     if (data.isNewSet) {
       const currentExercise = session.exercises.find(ex => ex.id === data.sessionExerciseId);
@@ -100,6 +107,54 @@ export function WorkoutSessionContent({
     setRestTimeSeconds(0);
     setIsCancelModalOpen(false);
   };
+
+  const handleExerciseReorder = async (reorderedExercises: DraggableExercise[]) => {
+    if (!onReorderExercises) return;
+    
+    // Convert draggable exercises back to session exercises with updated order
+    const newOrderedExercises = reorderedExercises.map((dragExercise, newIndex) => {
+      const originalIndex = parseInt(dragExercise.id.split('-')[1]);
+      const originalExercise = session.exercises[originalIndex];
+      return {
+        ...originalExercise,
+        orderIndex: newIndex,
+      };
+    });
+    
+    // Update current exercise index if needed
+    const currentExercise = session.exercises[currentExerciseIndex];
+    if (currentExercise) {
+      const newCurrentIndex = newOrderedExercises.findIndex(ex => ex.id === currentExercise.id);
+      if (newCurrentIndex !== -1) {
+        setCurrentExerciseIndex(newCurrentIndex);
+      }
+    }
+    
+    await onReorderExercises(newOrderedExercises);
+  };
+
+  // Convert session exercises to draggable format
+  const draggableExercises: DraggableExercise[] = session.exercises.map((exercise, index) => {
+    const completedSets = exercise.sets.filter(set => set.isCompleted).length;
+    const totalSets = exercise.sets.length;
+    const isCompleted = exercise.sets.every(set => set.isCompleted);
+    
+    return {
+      id: `exercise-${index}`,
+      name: exercise.name,
+      muscleGroup: exercise.muscleGroup || undefined,
+      sets: totalSets,
+      reps: exercise.minReps && exercise.maxReps 
+        ? `${exercise.minReps}-${exercise.maxReps}`
+        : exercise.minReps?.toString() || exercise.maxReps?.toString(),
+      weight: exercise.targetWeight?.toString(),
+      restTime: exercise.restTime || undefined,
+      notes: `${completedSets} / ${totalSets} sets`,
+      originalIndex: index,
+      exerciseId: exercise.id,
+      isCompleted,
+    };
+  });
 
   const currentExercise = session.exercises[currentExerciseIndex];
   const completedExercises = session.exercises.filter(exercise => 
@@ -161,22 +216,25 @@ export function WorkoutSessionContent({
             onCancel={handleRestTimerCancel}
             isActive={isRestTimerActive}
             className="w-full"
+            resetTrigger={resetTrigger}
           />
         </div>
 
-        {/* Exercise Progress Tracker */}
+        {/* Exercise Progress Tracker with Drag & Drop */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-4">Exercise Progress</h2>
-          <div className="grid gap-3">
-            {session.exercises.map((exercise, index) => {
-              const isCurrentExercise = index === currentExerciseIndex;
-              const isCompleted = exercise.sets.every(set => set.isCompleted);
-              // const isPast = index < currentExerciseIndex;
-              const isFuture = index > currentExerciseIndex;
-
+          <DraggableExerciseList
+            exercises={draggableExercises}
+            onReorder={handleExerciseReorder}
+            renderExercise={(exercise) => {
+              const originalIndex = exercise.originalIndex as number;
+              const sessionExercise = session.exercises[originalIndex];
+              const isCurrentExercise = originalIndex === currentExerciseIndex;
+              const isCompleted = exercise.isCompleted;
+              const isFuture = originalIndex > currentExerciseIndex;
+              
               return (
                 <div
-                  key={exercise.id}
                   className={`p-4 rounded-lg border transition-all ${
                     isCurrentExercise
                       ? "border-blue-500 bg-blue-50 shadow-md"
@@ -196,18 +254,20 @@ export function WorkoutSessionContent({
                       <div>
                         <h3 className="font-medium">{exercise.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {exercise.sets.length} sets • {exercise.muscleGroup}
+                          {sessionExercise.sets.length} sets • {exercise.muscleGroup}
                         </p>
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {exercise.sets.filter(s => s.isCompleted).length} / {exercise.sets.length}
+                      {exercise.notes}
                     </div>
                   </div>
                 </div>
               );
-            })}
-          </div>
+            }}
+            showDragHandle={true}
+            className="space-y-3"
+          />
         </div>
 
         {/* Current Exercise Detail */}

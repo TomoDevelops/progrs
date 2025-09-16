@@ -26,14 +26,23 @@ const updateSetSchema = z.object({
   reps: z.number().min(1, "Reps must be at least 1").max(100, "Reps cannot exceed 100"),
 });
 
+// Schema for reordering exercises
+const reorderExercisesSchema = z.object({
+  sessionId: z.string().min(1, "Session ID is required"),
+  exerciseOrders: z.array(z.object({
+    sessionExerciseId: z.string().min(1, "Session exercise ID is required"),
+    orderIndex: z.number().min(0, "Order index cannot be negative"),
+  })).min(1, "At least one exercise order is required"),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    // Get the session
+    const headersList = await headers();
     const session = await auth.api.getSession({
-      headers: await headers(),
+      headers: headersList,
     });
 
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
@@ -43,7 +52,51 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action } = body;
 
-    if (action === "create") {
+    if (action === "reorderExercises") {
+      const validation = reorderExercisesSchema.safeParse(body);
+      if (!validation.success) {
+        return NextResponse.json(
+          { success: false, error: validation.error.issues[0].message },
+          { status: 400 }
+        );
+      }
+
+      const { sessionId, exerciseOrders } = validation.data;
+
+      // Verify session belongs to user
+      const sessionCheck = await db
+        .select({ id: workoutSessions.id })
+        .from(workoutSessions)
+        .where(
+          and(
+            eq(workoutSessions.id, sessionId),
+            eq(workoutSessions.userId, session.user.id)
+          )
+        )
+        .limit(1);
+
+      if (sessionCheck.length === 0) {
+        return NextResponse.json(
+          { success: false, error: "Session not found" },
+          { status: 404 }
+        );
+      }
+
+      // Update exercise order indices
+      await db.transaction(async (tx) => {
+        for (const { sessionExerciseId, orderIndex } of exerciseOrders) {
+          await tx
+            .update(sessionExercises)
+            .set({ orderIndex })
+            .where(eq(sessionExercises.id, sessionExerciseId));
+        }
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Exercise order updated successfully",
+      });
+    } else if (action === "create") {
       // Validate the request body for creating a session
       const validationResult = createSessionSchema.safeParse(body);
       
@@ -191,7 +244,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       return NextResponse.json(
-        { success: false, error: "Invalid action" },
+        { success: false, error: "Invalid action. Supported actions: create, updateSet, reorderExercises" },
         { status: 400 }
       );
     }

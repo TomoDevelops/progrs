@@ -71,7 +71,7 @@ export const workoutSessions = pgTable(
     startedAt: timestamp("started_at").defaultNow().notNull(),
     endedAt: timestamp("ended_at"),
     totalDuration: integer("total_duration"), // in minutes (calculated)
-    totalVolume: decimal("total_volume", { precision: 10, scale: 2 }), // in lbs/kg
+    totalVolume: decimal("total_volume", { precision: 10, scale: 2 }), // in kg
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -139,7 +139,7 @@ export const exerciseSets = pgTable("exercise_sets", {
     .notNull()
     .references(() => sessionExercises.id, { onDelete: "cascade" }),
   setNumber: integer("set_number").notNull(),
-  weight: decimal("weight", { precision: 8, scale: 2 }), // lbs/kg
+  weight: decimal("weight", { precision: 8, scale: 2 }), // kg
   reps: integer("reps").notNull(),
   isPr: boolean("is_pr").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -211,7 +211,7 @@ export const bodyMetrics = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    bodyWeight: decimal("body_weight", { precision: 5, scale: 2 }), // in lbs/kg
+    bodyWeight: decimal("body_weight", { precision: 5, scale: 2 }), // in kg
     recordedAt: timestamp("recorded_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

@@ -7,6 +7,10 @@ import {
   decimal,
   date,
   index,
+  pgEnum,
+  jsonb,
+  time,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
@@ -219,6 +223,228 @@ export const bodyMetrics = pgTable(
     userDateIdx: index("idx_metrics_user_date").on(
       table.userId,
       table.recordedAt,
+    ),
+  }),
+);
+
+// Settings-related enums
+export const unitsEnum = pgEnum("units", ["metric", "imperial"]);
+export const oneRmFormulaEnum = pgEnum("one_rm_formula", ["epley", "brzycki"]);
+export const defaultWorkoutViewEnum = pgEnum("default_workout_view", [
+  "last",
+  "empty",
+  "list",
+]);
+export const chartMetricEnum = pgEnum("chart_metric", [
+  "total_volume",
+  "one_rm",
+  "duration",
+  "body_weight",
+]);
+export const chartRangeEnum = pgEnum("chart_range", ["2w", "8w", "6m", "1y"]);
+export const heatmapMetricEnum = pgEnum("heatmap_metric", [
+  "volume",
+  "minutes",
+]);
+export const themeEnum = pgEnum("theme", ["system", "light", "dark"]);
+export const timeFormatEnum = pgEnum("time_format", ["12h", "24h"]);
+export const firstDayEnum = pgEnum("first_day_of_week", ["mon", "sun"]);
+export const visibilityEnum = pgEnum("profile_visibility", [
+  "public",
+  "followers",
+  "private",
+]);
+
+// One row per user — core preferences
+export const userSettings = pgTable("user_settings", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  units: unitsEnum("units").default("metric").notNull(),
+  barWeight: decimal("bar_weight", { precision: 5, scale: 2 })
+    .default("20.00")
+    .notNull(),
+  platePairs: jsonb("plate_pairs"), // [25,20,15,10,5,2.5,1.25]
+  roundingIncrement: decimal("rounding_increment", { precision: 4, scale: 2 })
+    .default("2.50")
+    .notNull(),
+  oneRmFormula: oneRmFormulaEnum("one_rm_formula").default("epley").notNull(),
+  restTimerEnabled: boolean("rest_timer_enabled").default(true).notNull(),
+  restTimerSeconds: integer("rest_timer_seconds").default(120).notNull(),
+  autoProgressionEnabled: boolean("auto_progression_enabled")
+    .default(false)
+    .notNull(),
+  autoProgressionStep: decimal("auto_progression_step", {
+    precision: 4,
+    scale: 2,
+  })
+    .default("2.50")
+    .notNull(),
+  warmupPreset: text("warmup_preset").default("40-60-75-90").notNull(),
+  defaultWorkoutView: defaultWorkoutViewEnum("default_workout_view")
+    .default("last")
+    .notNull(),
+  quickStartDefaultSplit: text("quick_start_default_split"), // push|pull|legs|full
+
+  chartDefaultMetric: chartMetricEnum("chart_default_metric")
+    .default("total_volume")
+    .notNull(),
+  chartDefaultRange: chartRangeEnum("chart_default_range")
+    .default("8w")
+    .notNull(),
+  heatmapMetric: heatmapMetricEnum("heatmap_metric")
+    .default("volume")
+    .notNull(),
+  showBodyWeightOverlay: boolean("show_body_weight_overlay")
+    .default(false)
+    .notNull(),
+  firstDayOfWeek: firstDayEnum("first_day_of_week").default("mon").notNull(),
+  timeFormat: timeFormatEnum("time_format").default("24h").notNull(),
+  language: text("language"),
+  theme: themeEnum("theme").default("system").notNull(),
+
+  prToastsEnabled: boolean("pr_toasts_enabled").default(true).notNull(),
+  showPrBadges: boolean("show_pr_badges").default(true).notNull(),
+  streakNudgesEnabled: boolean("streak_nudges_enabled").default(true).notNull(),
+  profileVisibility: visibilityEnum("profile_visibility")
+    .default("private")
+    .notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Email/Push notification toggles
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  weeklySummaryEmail: boolean("weekly_summary_email").default(false).notNull(),
+  workoutRemindersEmail: boolean("workout_reminders_email")
+    .default(false)
+    .notNull(),
+  prEmail: boolean("pr_email").default(false).notNull(),
+  productUpdatesEmail: boolean("product_updates_email")
+    .default(false)
+    .notNull(),
+  pushWorkoutReminders: boolean("push_workout_reminders")
+    .default(false)
+    .notNull(),
+  pushGoals: boolean("push_goals").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Workout reminder rules (local time)
+export const workoutReminders = pgTable(
+  "workout_reminders",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    dayOfWeek: integer("day_of_week").notNull(), // 0=Sun .. 6=Sat
+    timeLocal: time("time_local").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    uniqUserDowTime: uniqueIndex("uniq_reminder_user_dow_time").on(
+      table.userId,
+      table.dayOfWeek,
+      table.timeLocal,
+    ),
+  }),
+);
+
+// Web push subscriptions (per device)
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqPushEndpoint: uniqueIndex("uniq_push_user_endpoint").on(
+      table.userId,
+      table.endpoint,
+    ),
+  }),
+);
+
+// Per-user custom display names for exercises
+export const exerciseAliases = pgTable(
+  "exercise_aliases",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    exerciseId: text("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    alias: text("alias").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    uniqUserExercise: uniqueIndex("uniq_alias_user_exercise").on(
+      table.userId,
+      table.exerciseId,
+    ),
+  }),
+);
+
+// Data export jobs (async)
+export const dataExports = pgTable(
+  "data_exports",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    format: text("format").default("csv").notNull(), // csv|json
+    status: text("status").default("pending").notNull(), // pending|processing|complete|error
+    downloadUrl: text("download_url"),
+    error: text("error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    userStatusIdx: index("idx_export_user_status").on(
+      table.userId,
+      table.status,
     ),
   }),
 );

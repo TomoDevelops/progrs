@@ -61,9 +61,9 @@ export function RestTimer({
         reset(restTimeSeconds);
         start();
       }
-    } else {
-      pause();
+      return;
     }
+    pause();
   }, [isActive, restTimeSeconds, reset, start, pause, isRunning, isCompleted]);
 
   // Format time as MM:SS
@@ -170,12 +170,13 @@ export function RestTimer({
                 onClick={handlePlayPause}
                 className="flex h-8 items-center space-x-1 px-3"
               >
-                {isRunning ? (
+                {isRunning && (
                   <>
                     <Pause className="h-3 w-3" />
                     <span className="text-xs">Pause</span>
                   </>
-                ) : (
+                )}
+                {!isRunning && (
                   <>
                     <Play className="h-3 w-3" />
                     <span className="text-xs">Resume</span>

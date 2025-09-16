@@ -28,7 +28,10 @@ export function LocaleSync() {
 
     if (isRTL && !hasRTLClass) {
       document.documentElement.classList.add("rtl");
-    } else if (!isRTL && hasRTLClass) {
+      return;
+    }
+    
+    if (!isRTL && hasRTLClass) {
       document.documentElement.classList.remove("rtl");
     }
   }, [isRTL, locale]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -31,11 +31,16 @@ import { ProgressChartSkeleton } from "./ProgressChartSkeleton";
 import { EmptyProgressChart } from "./EmptyProgressChart";
 
 const TIMEFRAME_OPTIONS = [
-  { value: "4W", label: "4W" },
+  { value: "2W", label: "2W" },
   { value: "8W", label: "8W" },
-  { value: "3M", label: "3M" },
+  { value: "6M", label: "6M" },
   { value: "1Y", label: "1Y" },
-  { value: "ALL", label: "ALL" },
+] as const;
+
+const METRIC_OPTIONS = [
+  { value: "volume", label: "Total Volume" },
+  { value: "weight", label: "Max Weight" },
+  { value: "reps", label: "Max Reps" },
 ] as const;
 
 const METRIC_LABELS = {
@@ -48,10 +53,10 @@ export const ProgressChart = () => {
   const [selectedExerciseId, setSelectedExerciseId] = useState<
     string | undefined
   >();
-  const [timeframe, setTimeframe] = useState<"4W" | "8W" | "3M" | "1Y" | "ALL">(
+  const [timeframe, setTimeframe] = useState<"2W" | "8W" | "6M" | "1Y">(
     "8W",
   );
-  const [metric] = useState<"weight" | "reps" | "volume">("weight"); // Start with weight only
+  const [metric, setMetric] = useState<"weight" | "reps" | "volume">("volume"); // Default to Total volume
 
   const {
     data: progressData,
@@ -59,17 +64,22 @@ export const ProgressChart = () => {
     error,
   } = useProgressData(selectedExerciseId, timeframe, metric);
 
+  // Update timeframe state if API returns a different timeframe due to auto-fallback
+  useEffect(() => {
+    if (progressData?.timeframe && progressData.timeframe !== timeframe) {
+      setTimeframe(progressData.timeframe);
+    }
+  }, [progressData?.timeframe, timeframe]);
+
   const formatXAxisDate = (dateStr: string) => {
     const date = parseISO(dateStr);
     switch (timeframe) {
-      case "4W":
+      case "2W":
       case "8W":
         return format(date, "MMM d");
-      case "3M":
+      case "6M":
         return format(date, "MMM d");
       case "1Y":
-        return format(date, "MMM yyyy");
-      case "ALL":
         return format(date, "MMM yyyy");
       default:
         return format(date, "MMM d");
@@ -174,23 +184,39 @@ export const ProgressChart = () => {
             onExerciseChange={setSelectedExerciseId}
           />
 
-          <Select
-            value={timeframe}
-            onValueChange={(value: "4W" | "8W" | "3M" | "1Y" | "ALL") =>
-              setTimeframe(value)
-            }
-          >
-            <SelectTrigger className="w-full sm:w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIMEFRAME_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select
+              value={metric}
+              onValueChange={(value) => setMetric(value as "weight" | "reps" | "volume")}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {METRIC_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={timeframe}
+              onValueChange={(value) => setTimeframe(value as "2W" | "8W" | "6M" | "1Y")}
+            >
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEFRAME_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Chart */}
@@ -217,10 +243,20 @@ export const ProgressChart = () => {
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#22c55e"
-                  strokeWidth={2}
-                  dot={{ fill: "#22c55e", strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: "#22c55e", strokeWidth: 2 }}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={3}
+                  dot={{ 
+                    fill: "hsl(var(--background))", 
+                    stroke: "hsl(var(--primary))", 
+                    strokeWidth: 2, 
+                    r: 5 
+                  }}
+                  activeDot={{ 
+                    r: 7, 
+                    fill: "hsl(var(--primary))", 
+                    stroke: "hsl(var(--background))", 
+                    strokeWidth: 3 
+                  }}
                 />
               </LineChart>
             </ResponsiveContainer>

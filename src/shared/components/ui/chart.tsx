@@ -328,7 +328,10 @@ function getPayloadConfigFromPayload(
     typeof payload[key as keyof typeof payload] === "string"
   ) {
     configLabelKey = payload[key as keyof typeof payload] as string;
-  } else if (
+  }
+  
+  if (
+    configLabelKey === key &&
     payloadPayload &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === "string"

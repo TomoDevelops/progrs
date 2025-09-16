@@ -126,12 +126,13 @@ export function CreateWorkoutRoutineDialog({
         setOpen(false);
         form.reset();
         onSuccess?.();
-      } else {
-        console.error("Failed to create routine:", result.error);
-        toast.error("Failed to create routine", {
-          description: result.error || "An unexpected error occurred",
-        });
+        return;
       }
+      
+      console.error("Failed to create routine:", result.error);
+      toast.error("Failed to create routine", {
+        description: result.error || "An unexpected error occurred",
+      });
     } catch (error) {
       console.error("Error creating routine:", error);
       toast.error("Error creating routine", {
@@ -280,9 +281,10 @@ export function CreateWorkoutRoutineDialog({
                                   ),
                                 );
                                 field.onChange(utcDate);
-                              } else {
-                                field.onChange(date);
+                                return;
                               }
+                              
+                              field.onChange(date);
                             }}
                             disabled={(date) =>
                               date < new Date(new Date().setHours(0, 0, 0, 0))

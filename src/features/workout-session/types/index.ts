@@ -52,6 +52,11 @@ export interface UpdateSetRequest {
   reps: number;
 }
 
+export interface RepeatSessionRequest {
+  action: "repeat";
+  sessionId: string;
+}
+
 export interface FinishSessionRequest {
   action: "finish";
   notes?: string;

@@ -11,7 +11,7 @@ export interface ProgressData {
   exerciseName: string | null;
   data: ProgressDataPoint[];
   metric: "weight" | "reps" | "volume";
-  timeframe: "4W" | "8W" | "3M" | "1Y" | "ALL";
+  timeframe: "2W" | "8W" | "6M" | "1Y";
 }
 
 export interface ExercisesData {
@@ -22,8 +22,8 @@ export interface ExercisesData {
 
 export const useProgressData = (
   exerciseId?: string,
-  timeframe: "4W" | "8W" | "3M" | "1Y" | "ALL" = "8W",
-  metric: "weight" | "reps" | "volume" = "weight",
+  timeframe: "2W" | "8W" | "6M" | "1Y" = "8W",
+  metric: "weight" | "reps" | "volume" = "volume",
 ) => {
   return useQuery({
     queryKey: ["progress", exerciseId, timeframe, metric],

@@ -40,12 +40,13 @@ export const useSignup = (): UseSignupReturn => {
 
       if (error) {
         setError(error.message || "Failed to create account");
-      } else {
-        router.push(
-          "/verify-otp?type=email-verification&email=" +
-            encodeURIComponent(data.email),
-        );
+        return;
       }
+      
+      router.push(
+        "/verify-otp?type=email-verification&email=" +
+          encodeURIComponent(data.email),
+      );
     } catch {
       setError("An unexpected error occurred");
     } finally {

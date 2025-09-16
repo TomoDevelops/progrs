@@ -24,14 +24,15 @@ export function RestTimeInput({
       const secs = value % 60;
       setMinutes(mins > 0 ? mins.toString() : "");
       setSeconds(secs > 0 ? secs.toString() : "");
-    } else {
-      // Set default to 1 minute when no value
-      setMinutes("1");
-      setSeconds("");
-      // Call onChange with default 60 seconds if no initial value
-      if (onChange && (value === undefined || value === null)) {
-        onChange(60);
-      }
+      return;
+    }
+    
+    // Set default to 1 minute when no value
+    setMinutes("1");
+    setSeconds("");
+    // Call onChange with default 60 seconds if no initial value
+    if (onChange && (value === undefined || value === null)) {
+      onChange(60);
     }
   }, [value, onChange]);
 

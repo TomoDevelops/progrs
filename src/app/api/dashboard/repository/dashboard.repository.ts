@@ -59,6 +59,20 @@ export interface SummaryStats {
   totalWeightLifted: number;
 }
 
+export interface PersonalRecord {
+  id: string;
+  exerciseName: string;
+  maxWeight: number;
+  achievedAt: Date;
+  isRecent: boolean;
+}
+
+export interface WeeklyStats {
+  workouts: number;
+  duration: number; // in minutes
+  volume: number; // in kg
+}
+
 export interface WorkoutSessionDetail {
   id: string;
   routineName: string;
@@ -466,6 +480,107 @@ export class DashboardRepository {
       notes: sessionData.notes,
       exercises: Array.from(exerciseMap.values()),
     };
+  }
+
+  async getRecentPersonalRecords(
+    userId: string,
+    limit: number = 10,
+    days: number = 30,
+  ): Promise<PersonalRecord[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const records = await db
+      .select({
+        id: personalRecords.id,
+        exerciseName: exercises.name,
+        maxWeight: personalRecords.maxWeight,
+        achievedAt: personalRecords.achievedAt,
+      })
+      .from(personalRecords)
+      .innerJoin(exercises, eq(personalRecords.exerciseId, exercises.id))
+      .where(
+        and(
+          eq(personalRecords.userId, userId),
+          gte(personalRecords.achievedAt, cutoffDate),
+        ),
+      )
+      .orderBy(desc(personalRecords.achievedAt))
+      .limit(limit);
+
+    return records.map((record) => ({
+      id: record.id,
+      exerciseName: record.exerciseName,
+      maxWeight: Number(record.maxWeight),
+      achievedAt: record.achievedAt,
+      isRecent: true,
+    }));
+  }
+
+  async getWeeklyStats(userId: string, weekOffset: number = 0): Promise<WeeklyStats> {
+    // Calculate the start and end of the target week
+    const now = new Date();
+    const currentWeekStart = new Date(now);
+    currentWeekStart.setDate(now.getDate() - now.getDay() - (weekOffset * 7)); // Start of week (Sunday)
+    currentWeekStart.setHours(0, 0, 0, 0);
+    
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(currentWeekStart.getDate() + 6); // End of week (Saturday)
+    weekEnd.setHours(23, 59, 59, 999);
+
+    // Get completed workout sessions for the week
+    const sessions = await db
+      .select({
+        id: workoutSessions.id,
+        totalDuration: workoutSessions.totalDuration,
+        endedAt: workoutSessions.endedAt,
+      })
+      .from(workoutSessions)
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.endedAt, currentWeekStart),
+          lte(workoutSessions.endedAt, weekEnd),
+          sql`${workoutSessions.endedAt} IS NOT NULL`
+        )
+      );
+
+    // Calculate total volume for the week
+    const volumeResult = await db
+      .select({
+        totalVolume: sql<number>`COALESCE(SUM(${exerciseSets.weight} * ${exerciseSets.reps}), 0)`,
+      })
+      .from(exerciseSets)
+      .innerJoin(sessionExercises, eq(exerciseSets.sessionExerciseId, sessionExercises.id))
+      .innerJoin(workoutSessions, eq(sessionExercises.sessionId, workoutSessions.id))
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.endedAt, currentWeekStart),
+          lte(workoutSessions.endedAt, weekEnd),
+          sql`${workoutSessions.endedAt} IS NOT NULL`,
+          sql`${exerciseSets.weight} IS NOT NULL`
+        )
+      );
+
+    const totalDuration = sessions.reduce((sum, session) => {
+      return sum + (session.totalDuration || 0);
+    }, 0);
+
+    return {
+      workouts: sessions.length,
+      duration: totalDuration,
+      volume: Number(volumeResult[0]?.totalVolume || 0),
+    };
+  }
+
+  async getCurrentAndLastWeekStats(userId: string): Promise<{ currentWeek: WeeklyStats; lastWeek: WeeklyStats }> {
+    const [currentWeek, lastWeek] = await Promise.all([
+      this.getWeeklyStats(userId, 0), // Current week
+      this.getWeeklyStats(userId, 1), // Last week
+    ]);
+
+    return { currentWeek, lastWeek };
   }
 }
 

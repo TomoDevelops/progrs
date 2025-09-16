@@ -181,11 +181,10 @@ export class DashboardService {
 
     // Start from the most recent date and work backwards
     for (let i = consistencyData.length - 1; i >= 0; i--) {
-      if (consistencyData[i].workoutsCompleted > 0) {
-        streak++;
-      } else {
+      if (consistencyData[i].workoutsCompleted <= 0) {
         break;
       }
+      streak++;
     }
 
     return streak;

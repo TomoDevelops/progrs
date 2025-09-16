@@ -24,7 +24,7 @@ export interface ExerciseInfo {
 export class ProgressRepository {
   async getMostFrequentExercise(
     userId: string,
-    timeframe: string
+    timeframe: string,
   ): Promise<string | null> {
     const dateRange = this.getDateRange(timeframe);
 
@@ -37,15 +37,19 @@ export class ProgressRepository {
       .from(sessionExercises)
       .innerJoin(
         workoutSessions,
-        eq(sessionExercises.sessionId, workoutSessions.id)
+        eq(sessionExercises.sessionId, workoutSessions.id),
       )
       .where(
         and(
           eq(workoutSessions.userId, userId),
           sql`${workoutSessions.endedAt} IS NOT NULL`,
-          dateRange.start ? gte(workoutSessions.endedAt, dateRange.start) : undefined,
-          dateRange.end ? lte(workoutSessions.endedAt, dateRange.end) : undefined
-        )
+          dateRange.start
+            ? gte(workoutSessions.endedAt, dateRange.start)
+            : undefined,
+          dateRange.end
+            ? lte(workoutSessions.endedAt, dateRange.end)
+            : undefined,
+        ),
       )
       .groupBy(sessionExercises.exerciseId, sessionExercises.name)
       .orderBy(desc(count(sessionExercises.id)))
@@ -58,7 +62,7 @@ export class ProgressRepository {
     userId: string,
     exerciseId: string,
     timeframe: string,
-    metric: "weight" | "reps" | "volume"
+    metric: "weight" | "reps" | "volume",
   ): Promise<ProgressDataPoint[]> {
     const dateRange = this.getDateRange(timeframe);
 
@@ -86,21 +90,27 @@ export class ProgressRepository {
       .from(workoutSessions)
       .innerJoin(
         sessionExercises,
-        eq(workoutSessions.id, sessionExercises.sessionId)
+        eq(workoutSessions.id, sessionExercises.sessionId),
       )
       .innerJoin(
         exerciseSets,
-        eq(sessionExercises.id, exerciseSets.sessionExerciseId)
+        eq(sessionExercises.id, exerciseSets.sessionExerciseId),
       )
       .where(
         and(
           eq(workoutSessions.userId, userId),
           eq(sessionExercises.exerciseId, exerciseId),
           sql`${workoutSessions.endedAt} IS NOT NULL`,
-          dateRange.start ? gte(workoutSessions.endedAt, dateRange.start) : undefined,
-          dateRange.end ? lte(workoutSessions.endedAt, dateRange.end) : undefined,
-          metric === "weight" ? sql`${exerciseSets.weight} IS NOT NULL` : undefined
-        )
+          dateRange.start
+            ? gte(workoutSessions.endedAt, dateRange.start)
+            : undefined,
+          dateRange.end
+            ? lte(workoutSessions.endedAt, dateRange.end)
+            : undefined,
+          metric === "weight"
+            ? sql`${exerciseSets.weight} IS NOT NULL`
+            : undefined,
+        ),
       )
       .groupBy(sql`DATE(${workoutSessions.endedAt})`, workoutSessions.id)
       .orderBy(sql`DATE(${workoutSessions.endedAt})`);
@@ -129,7 +139,7 @@ export class ProgressRepository {
 
   async getFavoriteExercises(
     userId: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<ExerciseInfo[]> {
     const result = await db
       .select({
@@ -140,18 +150,26 @@ export class ProgressRepository {
         count: count(sessionExercises.id),
       })
       .from(exercises)
-      .innerJoin(sessionExercises, eq(exercises.id, sessionExercises.exerciseId))
+      .innerJoin(
+        sessionExercises,
+        eq(exercises.id, sessionExercises.exerciseId),
+      )
       .innerJoin(
         workoutSessions,
-        eq(sessionExercises.sessionId, workoutSessions.id)
+        eq(sessionExercises.sessionId, workoutSessions.id),
       )
       .where(
         and(
           eq(workoutSessions.userId, userId),
-          sql`${workoutSessions.endedAt} IS NOT NULL`
-        )
+          sql`${workoutSessions.endedAt} IS NOT NULL`,
+        ),
       )
-      .groupBy(exercises.id, exercises.name, exercises.muscleGroup, exercises.equipment)
+      .groupBy(
+        exercises.id,
+        exercises.name,
+        exercises.muscleGroup,
+        exercises.equipment,
+      )
       .orderBy(desc(count(sessionExercises.id)))
       .limit(limit);
 
@@ -167,7 +185,7 @@ export class ProgressRepository {
     userId: string,
     search?: string,
     offset: number = 0,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<{ exercises: ExerciseInfo[]; total: number }> {
     const whereConditions = [
       eq(workoutSessions.userId, userId),
@@ -176,7 +194,7 @@ export class ProgressRepository {
 
     if (search) {
       whereConditions.push(
-        sql`LOWER(${exercises.name}) LIKE LOWER(${"%" + search + "%"})`
+        sql`LOWER(${exercises.name}) LIKE LOWER(${"%" + search + "%"})`,
       );
     }
 
@@ -189,24 +207,35 @@ export class ProgressRepository {
           equipment: exercises.equipment,
         })
         .from(exercises)
-        .innerJoin(sessionExercises, eq(exercises.id, sessionExercises.exerciseId))
+        .innerJoin(
+          sessionExercises,
+          eq(exercises.id, sessionExercises.exerciseId),
+        )
         .innerJoin(
           workoutSessions,
-          eq(sessionExercises.sessionId, workoutSessions.id)
+          eq(sessionExercises.sessionId, workoutSessions.id),
         )
         .where(and(...whereConditions))
-        .groupBy(exercises.id, exercises.name, exercises.muscleGroup, exercises.equipment)
+        .groupBy(
+          exercises.id,
+          exercises.name,
+          exercises.muscleGroup,
+          exercises.equipment,
+        )
         .orderBy(exercises.name)
         .offset(offset)
         .limit(limit),
-      
+
       db
         .select({ count: count(sql`DISTINCT ${exercises.id}`) })
         .from(exercises)
-        .innerJoin(sessionExercises, eq(exercises.id, sessionExercises.exerciseId))
+        .innerJoin(
+          sessionExercises,
+          eq(exercises.id, sessionExercises.exerciseId),
+        )
         .innerJoin(
           workoutSessions,
-          eq(sessionExercises.sessionId, workoutSessions.id)
+          eq(sessionExercises.sessionId, workoutSessions.id),
         )
         .where(and(...whereConditions)),
     ]);
@@ -219,7 +248,7 @@ export class ProgressRepository {
 
   private getDateRange(timeframe: string): { start?: Date; end?: Date } {
     const now = new Date();
-    
+
     switch (timeframe) {
       case "4W":
         return { start: subWeeks(now, 4), end: now };

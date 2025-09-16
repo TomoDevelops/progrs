@@ -51,16 +51,19 @@ export const useTimer = ({
 
   const toggle = useCallback(() => {
     if (isCompleted) return;
-    setIsRunning(prev => !prev);
+    setIsRunning((prev) => !prev);
   }, [isCompleted]);
 
-  const reset = useCallback((newTime?: number) => {
-    clearTimer();
-    const resetTime = newTime ?? initialTime;
-    setTimeLeft(resetTime);
-    setIsRunning(autoStart);
-    setIsCompleted(false);
-  }, [initialTime, autoStart, clearTimer]);
+  const reset = useCallback(
+    (newTime?: number) => {
+      clearTimer();
+      const resetTime = newTime ?? initialTime;
+      setTimeLeft(resetTime);
+      setIsRunning(autoStart);
+      setIsCompleted(false);
+    },
+    [initialTime, autoStart, clearTimer],
+  );
 
   // Timer countdown effect
   useEffect(() => {
@@ -70,7 +73,7 @@ export const useTimer = ({
     }
 
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         const newTime = prev - 1;
         if (newTime <= 0) {
           setIsCompleted(true);

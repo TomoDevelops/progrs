@@ -14,7 +14,9 @@ interface UseCountdownReturn {
   reset: () => void;
 }
 
-export const useCountdown = ({ onComplete }: UseCountdownOptions = {}): UseCountdownReturn => {
+export const useCountdown = ({
+  onComplete,
+}: UseCountdownOptions = {}): UseCountdownReturn => {
   const [countdown, setCountdown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -32,10 +34,10 @@ export const useCountdown = ({ onComplete }: UseCountdownOptions = {}): UseCount
   const start = (seconds: number) => {
     clearTimer();
     setCountdown(seconds);
-    
+
     if (seconds > 0) {
       intervalRef.current = setInterval(() => {
-        setCountdown(prev => {
+        setCountdown((prev) => {
           const newCount = prev - 1;
           if (newCount <= 0) {
             clearTimer();

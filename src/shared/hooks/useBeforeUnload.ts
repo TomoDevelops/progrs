@@ -11,7 +11,10 @@ interface UseBeforeUnloadOptions {
  * Custom hook to manage beforeunload event listener
  * Provides a cleaner API for preventing page navigation
  */
-export const useBeforeUnload = ({ enabled, message }: UseBeforeUnloadOptions) => {
+export const useBeforeUnload = ({
+  enabled,
+  message,
+}: UseBeforeUnloadOptions) => {
   useEffect(() => {
     if (!enabled) return;
 

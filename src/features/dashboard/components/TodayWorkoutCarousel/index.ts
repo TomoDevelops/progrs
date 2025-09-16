@@ -1,1 +1,1 @@
-export { TodayWorkoutCarousel } from './TodayWorkoutCarousel';
+export { TodayWorkoutCarousel } from "./TodayWorkoutCarousel";

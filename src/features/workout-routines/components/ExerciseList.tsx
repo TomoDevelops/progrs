@@ -4,7 +4,10 @@ import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { ExerciseCard } from "./ExerciseCard";
 import { ExerciseSelector } from "./ExerciseSelector";
 import { type WorkoutRoutine } from "@/features/workout-routines/types";
-import { DraggableExerciseList, type DraggableExercise } from "@/shared/components/DraggableExerciseList";
+import {
+  DraggableExerciseList,
+  type DraggableExercise,
+} from "@/shared/components/DraggableExerciseList";
 
 interface ExerciseListProps {
   form: UseFormReturn<WorkoutRoutine>;
@@ -63,8 +66,6 @@ export function ExerciseList({
     });
   };
 
-
-
   const handleExerciseReorder = (reorderedExercises: DraggableExercise[]) => {
     // Update the form field array to match the new order
     const currentExercises = form.getValues("exercises");
@@ -72,7 +73,7 @@ export function ExerciseList({
       const originalIndex = parseInt(dragExercise.id.split("-")[1]);
       return currentExercises[originalIndex];
     });
-    
+
     // Replace all exercises with the new order
     form.setValue("exercises", newOrderedExercises);
   };
@@ -81,15 +82,17 @@ export function ExerciseList({
   const draggableExercises: DraggableExercise[] = fields.map((field, index) => {
     const exercise = selectedExercises[field.exerciseId];
     const formExercise = form.getValues(`exercises.${index}`);
-    
+
     return {
       id: `exercise-${index}`,
       name: exercise?.name || `Exercise ${index + 1}`,
       muscleGroup: exercise?.muscleGroup,
       sets: formExercise?.sets,
-      reps: formExercise?.minReps && formExercise?.maxReps 
-        ? `${formExercise.minReps}-${formExercise.maxReps}`
-        : formExercise?.minReps?.toString() || formExercise?.maxReps?.toString(),
+      reps:
+        formExercise?.minReps && formExercise?.maxReps
+          ? `${formExercise.minReps}-${formExercise.maxReps}`
+          : formExercise?.minReps?.toString() ||
+            formExercise?.maxReps?.toString(),
       weight: formExercise?.targetWeight?.toString(),
       restTime: formExercise?.restTime,
       notes: formExercise?.notes,
@@ -105,7 +108,7 @@ export function ExerciseList({
         onExerciseSelect={handleExerciseSelect}
         selectedExerciseIds={fields.map((f) => f.exerciseId)}
       />
-      
+
       {fields.length > 0 && (
         <DraggableExerciseList
           exercises={draggableExercises}
@@ -114,7 +117,7 @@ export function ExerciseList({
             const originalIndex = exercise.originalIndex as number;
             const field = fields[originalIndex];
             if (!field) return null;
-            
+
             return (
               <ExerciseCard
                 field={field}

@@ -1,13 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Button } from "@/shared/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Separator } from "@/shared/components/ui/separator";
 import { Search, Loader2 } from "lucide-react";
-import { useFavoriteExercises, useAllExercises } from "@/features/dashboard/hooks/useProgressData";
+import {
+  useFavoriteExercises,
+  useAllExercises,
+} from "@/features/dashboard/hooks/useProgressData";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 
 interface ExerciseSelectorProps {
@@ -26,12 +40,10 @@ export const ExerciseSelector = ({
   const [offset, setOffset] = useState(0);
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  const { data: favorites, isLoading: favoritesLoading } = useFavoriteExercises();
-  const { data: allExercises, isLoading: allExercisesLoading } = useAllExercises(
-    debouncedSearch || undefined,
-    offset,
-    20
-  );
+  const { data: favorites, isLoading: favoritesLoading } =
+    useFavoriteExercises();
+  const { data: allExercises, isLoading: allExercisesLoading } =
+    useAllExercises(debouncedSearch || undefined, offset, 20);
 
   const handleExerciseSelect = (exerciseId: string) => {
     onExerciseChange(exerciseId);
@@ -42,7 +54,7 @@ export const ExerciseSelector = ({
 
   const loadMore = () => {
     if (allExercises?.hasMore) {
-      setOffset(prev => prev + 20);
+      setOffset((prev) => prev + 20);
     }
   };
 
@@ -78,7 +90,7 @@ export const ExerciseSelector = ({
                   <div className="flex flex-col">
                     <span className="font-medium">{exercise.name}</span>
                     {exercise.muscleGroup && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {exercise.muscleGroup}
                       </span>
                     )}
@@ -92,7 +104,9 @@ export const ExerciseSelector = ({
               )}
               <Separator className="my-1" />
               <SelectItem value="view-all">
-                <span className="font-medium text-primary">View all exercises...</span>
+                <span className="text-primary font-medium">
+                  View all exercises...
+                </span>
               </SelectItem>
             </>
           )}
@@ -104,10 +118,10 @@ export const ExerciseSelector = ({
           <DialogHeader>
             <DialogTitle>Select Exercise</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search exercises..."
                 value={searchTerm}
@@ -123,7 +137,9 @@ export const ExerciseSelector = ({
               {allExercisesLoading ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+                  <span className="text-muted-foreground ml-2 text-sm">
+                    Loading...
+                  </span>
                 </div>
               ) : (
                 <>
@@ -131,26 +147,28 @@ export const ExerciseSelector = ({
                     <Button
                       key={exercise.id}
                       variant="ghost"
-                      className="w-full justify-start p-3 h-auto"
+                      className="h-auto w-full justify-start p-3"
                       onClick={() => handleExerciseSelect(exercise.id)}
                     >
                       <div className="flex flex-col items-start">
                         <span className="font-medium">{exercise.name}</span>
                         {exercise.muscleGroup && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {exercise.muscleGroup}
                           </span>
                         )}
                       </div>
                     </Button>
                   ))}
-                  
+
                   {allExercises?.exercises.length === 0 && (
-                    <div className="py-4 text-center text-sm text-muted-foreground">
-                      {searchTerm ? "No exercises found" : "No exercises available"}
+                    <div className="text-muted-foreground py-4 text-center text-sm">
+                      {searchTerm
+                        ? "No exercises found"
+                        : "No exercises available"}
                     </div>
                   )}
-                  
+
                   {allExercises?.hasMore && (
                     <Button
                       variant="outline"

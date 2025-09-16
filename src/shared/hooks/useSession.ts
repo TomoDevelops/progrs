@@ -45,7 +45,7 @@ export const useSession = (options?: { redirectOnError?: boolean }) => {
 
 export const useAuthenticatedSession = () => {
   const router = useRouter();
-  
+
   return useQuery({
     queryKey: ["session"],
     queryFn: fetchSession,

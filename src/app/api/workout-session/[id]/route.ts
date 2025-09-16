@@ -20,7 +20,7 @@ const finishSessionSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get the session
@@ -31,7 +31,7 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function GET(
     if (!sessionId) {
       return NextResponse.json(
         { success: false, error: "Session ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -58,19 +58,22 @@ export async function GET(
         estimatedDuration: workoutRoutines.estimatedDuration,
       })
       .from(workoutSessions)
-      .leftJoin(workoutRoutines, eq(workoutSessions.routineId, workoutRoutines.id))
+      .leftJoin(
+        workoutRoutines,
+        eq(workoutSessions.routineId, workoutRoutines.id),
+      )
       .where(
         and(
           eq(workoutSessions.id, sessionId),
-          eq(workoutSessions.userId, session.user.id)
-        )
+          eq(workoutSessions.userId, session.user.id),
+        ),
       )
       .limit(1);
 
     if (workoutSession.length === 0) {
       return NextResponse.json(
         { success: false, error: "Workout session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -97,39 +100,48 @@ export async function GET(
           })
           .from(sessionExercises)
           .leftJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
-          .leftJoin(exerciseSets, eq(sessionExercises.id, exerciseSets.sessionExerciseId))
-          .leftJoin(routineExercises, and(
-            eq(routineExercises.routineId, sessionData.routineId),
-            eq(routineExercises.exerciseId, sessionExercises.exerciseId)
-          ))
+          .leftJoin(
+            exerciseSets,
+            eq(sessionExercises.id, exerciseSets.sessionExerciseId),
+          )
+          .leftJoin(
+            routineExercises,
+            and(
+              eq(routineExercises.routineId, sessionData.routineId),
+              eq(routineExercises.exerciseId, sessionExercises.exerciseId),
+            ),
+          )
           .where(eq(sessionExercises.sessionId, sessionId))
           .orderBy(sessionExercises.orderIndex, exerciseSets.setNumber)
       : await db
           .select({
-             sessionExerciseId: sessionExercises.id,
-             exerciseId: sessionExercises.exerciseId,
-             exerciseName: exercises.name,
-             orderIndex: sessionExercises.orderIndex,
-             muscleGroup: exercises.muscleGroup,
-             equipment: exercises.equipment,
-             setId: exerciseSets.id,
-             setNumber: exerciseSets.setNumber,
-             weight: exerciseSets.weight,
-             reps: exerciseSets.reps,
-             targetWeight: sql<number | null>`NULL`,
-             minReps: sql<number | null>`NULL`,
-             maxReps: sql<number | null>`NULL`,
-             restTime: sql<number | null>`NULL`,
-           })
+            sessionExerciseId: sessionExercises.id,
+            exerciseId: sessionExercises.exerciseId,
+            exerciseName: exercises.name,
+            orderIndex: sessionExercises.orderIndex,
+            muscleGroup: exercises.muscleGroup,
+            equipment: exercises.equipment,
+            setId: exerciseSets.id,
+            setNumber: exerciseSets.setNumber,
+            weight: exerciseSets.weight,
+            reps: exerciseSets.reps,
+            targetWeight: sql<number | null>`NULL`,
+            minReps: sql<number | null>`NULL`,
+            maxReps: sql<number | null>`NULL`,
+            restTime: sql<number | null>`NULL`,
+          })
           .from(sessionExercises)
           .leftJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
-          .leftJoin(exerciseSets, eq(sessionExercises.id, exerciseSets.sessionExerciseId))
+          .leftJoin(
+            exerciseSets,
+            eq(sessionExercises.id, exerciseSets.sessionExerciseId),
+          )
           .where(eq(sessionExercises.sessionId, sessionId))
           .orderBy(sessionExercises.orderIndex, exerciseSets.setNumber);
 
     // Group exercises and their sets
     const exerciseMap = new Map();
-    
+
     exercisesWithSets.forEach((row) => {
       if (!exerciseMap.has(row.sessionExerciseId)) {
         exerciseMap.set(row.sessionExerciseId, {
@@ -139,14 +151,18 @@ export async function GET(
           orderIndex: row.orderIndex,
           muscleGroup: row.muscleGroup,
           equipment: row.equipment,
-          targetWeight: row.targetWeight ? (typeof row.targetWeight === 'string' ? parseFloat(row.targetWeight) : row.targetWeight) : null,
+          targetWeight: row.targetWeight
+            ? typeof row.targetWeight === "string"
+              ? parseFloat(row.targetWeight)
+              : row.targetWeight
+            : null,
           minReps: row.minReps,
           maxReps: row.maxReps,
           restTime: row.restTime,
           sets: [],
         });
       }
-      
+
       if (row.setId) {
         exerciseMap.get(row.sessionExerciseId).sets.push({
           id: row.setId,
@@ -159,7 +175,7 @@ export async function GET(
     });
 
     const sessionExercisesList = Array.from(exerciseMap.values()).sort(
-      (a, b) => a.orderIndex - b.orderIndex
+      (a, b) => a.orderIndex - b.orderIndex,
     );
 
     // Calculate session duration if active
@@ -167,7 +183,9 @@ export async function GET(
     if (!sessionData.endedAt) {
       const now = new Date();
       const startTime = new Date(sessionData.startedAt);
-      currentDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000 / 60); // in minutes
+      currentDuration = Math.floor(
+        (now.getTime() - startTime.getTime()) / 1000 / 60,
+      ); // in minutes
     }
 
     return NextResponse.json({
@@ -194,14 +212,14 @@ export async function GET(
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get the session
@@ -212,7 +230,7 @@ export async function PATCH(
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -223,7 +241,7 @@ export async function PATCH(
     if (action === "finish") {
       // Validate the request body
       const validationResult = finishSessionSchema.safeParse(body);
-      
+
       if (!validationResult.success) {
         return NextResponse.json(
           {
@@ -231,7 +249,7 @@ export async function PATCH(
             error: "Validation failed",
             details: validationResult.error.issues,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -248,15 +266,15 @@ export async function PATCH(
         .where(
           and(
             eq(workoutSessions.id, sessionId),
-            eq(workoutSessions.userId, session.user.id)
-          )
+            eq(workoutSessions.userId, session.user.id),
+          ),
         )
         .limit(1);
 
       if (workoutSession.length === 0) {
         return NextResponse.json(
           { success: false, error: "Workout session not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -265,14 +283,16 @@ export async function PATCH(
       if (sessionData.endedAt) {
         return NextResponse.json(
           { success: false, error: "Workout session is already finished" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       // Calculate total duration
       const endTime = new Date();
       const startTime = new Date(sessionData.startedAt);
-      const totalDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000 / 60); // in minutes
+      const totalDuration = Math.floor(
+        (endTime.getTime() - startTime.getTime()) / 1000 / 60,
+      ); // in minutes
 
       // Update the session
       await db
@@ -294,7 +314,7 @@ export async function PATCH(
     } else {
       return NextResponse.json(
         { success: false, error: "Invalid action" },
-        { status: 400 }
+        { status: 400 },
       );
     }
   } catch (error) {
@@ -305,7 +325,7 @@ export async function PATCH(
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

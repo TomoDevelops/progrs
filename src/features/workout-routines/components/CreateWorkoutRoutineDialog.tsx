@@ -40,8 +40,8 @@ import {
 
 import { Plus, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { useLocale } from '@/shared/providers/LocaleProvider';
-import { formatDateWithLocale } from '@/shared/utils/date';
+import { useLocale } from "@/shared/providers/LocaleProvider";
+import { formatDateWithLocale } from "@/shared/utils/date";
 
 import {
   workoutRoutineSchema,
@@ -252,7 +252,11 @@ export function CreateWorkoutRoutineDialog({
                               )}
                             >
                               {field.value ? (
-                                formatDateWithLocale(field.value, "PPP", dateFnsLocale || undefined)
+                                formatDateWithLocale(
+                                  field.value,
+                                  "PPP",
+                                  dateFnsLocale || undefined,
+                                )
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -268,11 +272,13 @@ export function CreateWorkoutRoutineDialog({
                             onSelect={(date) => {
                               if (date) {
                                 // Create a new date at midnight UTC to avoid timezone issues
-                                const utcDate = new Date(Date.UTC(
-                                  date.getFullYear(),
-                                  date.getMonth(),
-                                  date.getDate()
-                                ));
+                                const utcDate = new Date(
+                                  Date.UTC(
+                                    date.getFullYear(),
+                                    date.getMonth(),
+                                    date.getDate(),
+                                  ),
+                                );
                                 field.onChange(utcDate);
                               } else {
                                 field.onChange(date);

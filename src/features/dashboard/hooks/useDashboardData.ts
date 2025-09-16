@@ -134,7 +134,11 @@ export const useDashboardData = (enabled: boolean = true) => {
       history.isLoading ||
       consistency.isLoading,
     isError:
-      stats.isError || todayWorkouts.isError || history.isError || consistency.isError,
-    error: stats.error || todayWorkouts.error || history.error || consistency.error,
+      stats.isError ||
+      todayWorkouts.isError ||
+      history.isError ||
+      consistency.isError,
+    error:
+      stats.error || todayWorkouts.error || history.error || consistency.error,
   };
 };

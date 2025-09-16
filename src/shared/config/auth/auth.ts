@@ -12,7 +12,9 @@ import {
   twoFactor as twoFactorTable,
 } from "@/shared/db/schema/auth-schema";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -69,10 +71,10 @@ export const auth = betterAuth({
                 `;
 
         if (!resend) {
-          console.error('Resend API key not configured');
-          throw new Error('Email service not configured');
+          console.error("Resend API key not configured");
+          throw new Error("Email service not configured");
         }
-        
+
         await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: email,

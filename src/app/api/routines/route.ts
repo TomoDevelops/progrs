@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/shared/db/database";
-import { workoutRoutines, routineExercises, routineSchedule } from "@/shared/db/schema/app-schema";
+import {
+  workoutRoutines,
+  routineExercises,
+  routineSchedule,
+} from "@/shared/db/schema/app-schema";
 import { workoutRoutineSchema } from "@/features/workout-routines/types";
 import { auth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
@@ -16,25 +20,31 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const body = await request.json();
-    
+
     // Transform date strings back to Date objects for validation
     const transformedBody = {
       ...body,
-      schedule: body.schedule ? {
-        ...body.schedule,
-        startDate: body.schedule.startDate ? new Date(body.schedule.startDate) : undefined,
-        endDate: body.schedule.endDate ? new Date(body.schedule.endDate) : undefined,
-      } : undefined,
+      schedule: body.schedule
+        ? {
+            ...body.schedule,
+            startDate: body.schedule.startDate
+              ? new Date(body.schedule.startDate)
+              : undefined,
+            endDate: body.schedule.endDate
+              ? new Date(body.schedule.endDate)
+              : undefined,
+          }
+        : undefined,
     };
-    
+
     // Validate the request body
     const validationResult = workoutRoutineSchema.safeParse(transformedBody);
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
         {
@@ -42,11 +52,12 @@ export async function POST(request: NextRequest) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { name, description, duration, exercises, schedule } = validationResult.data;
+    const { name, description, duration, exercises, schedule } =
+      validationResult.data;
 
     // Start a transaction
     const result = await db.transaction(async (tx) => {
@@ -59,7 +70,11 @@ export async function POST(request: NextRequest) {
           estimatedDuration: duration,
           userId: session.user.id,
         })
-        .returning({ id: workoutRoutines.id, name: workoutRoutines.name, createdAt: workoutRoutines.createdAt });
+        .returning({
+          id: workoutRoutines.id,
+          name: workoutRoutines.name,
+          createdAt: workoutRoutines.createdAt,
+        });
 
       // Create routine exercises
       if (exercises.length > 0) {
@@ -74,7 +89,7 @@ export async function POST(request: NextRequest) {
             targetWeight: exercise.targetWeight?.toString(),
             restTime: exercise.restTime,
             notes: exercise.notes,
-          }))
+          })),
         );
       }
 
@@ -83,7 +98,7 @@ export async function POST(request: NextRequest) {
         await tx.insert(routineSchedule).values({
           routineId: routine.id,
           userId: session.user.id,
-          scheduledDate: schedule.startDate.toISOString().split('T')[0], // Convert to date string
+          scheduledDate: schedule.startDate.toISOString().split("T")[0], // Convert to date string
         });
       }
 
@@ -100,13 +115,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating workout routine:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -121,7 +136,7 @@ export async function GET() {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -144,13 +159,13 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error fetching workout routines:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

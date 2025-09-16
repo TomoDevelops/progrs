@@ -32,10 +32,10 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
-  
+
   // Only enable data fetching when user is authenticated and not loading
   const isDataEnabled = !!user && !authLoading;
-  
+
   const {
     stats,
     todayWorkouts,

@@ -28,7 +28,7 @@ export const WorkoutDetailModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {selectedWorkout?.routineName || "Workout Details"}
@@ -80,7 +80,9 @@ export const WorkoutDetailModal = ({
 
             {isLoadingDetail ? (
               <div className="flex items-center justify-center py-8">
-                <div className="text-sm text-gray-600">Loading workout details...</div>
+                <div className="text-sm text-gray-600">
+                  Loading workout details...
+                </div>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-8">
@@ -90,8 +92,8 @@ export const WorkoutDetailModal = ({
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Exercises</h3>
                 {workoutDetail.exercises.map((exercise) => (
-                  <div key={exercise.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
+                  <div key={exercise.id} className="rounded-lg border p-4">
+                    <div className="mb-3 flex items-center justify-between">
                       <h4 className="font-medium">{exercise.name}</h4>
                       <div className="text-sm text-gray-600">
                         {exercise.muscleGroup} • {exercise.equipment}
@@ -106,25 +108,42 @@ export const WorkoutDetailModal = ({
                           <div>Volume (kg)</div>
                         </div>
                         {exercise.sets.map((set, index) => (
-                          <div key={index} className="grid grid-cols-4 gap-2 text-sm">
+                          <div
+                            key={index}
+                            className="grid grid-cols-4 gap-2 text-sm"
+                          >
                             <div>{index + 1}</div>
                             <div>{set.reps}</div>
                             <div>{set.weight ?? 0}</div>
-                            <div>{(set.reps * (set.weight ?? 0)).toFixed(1)}</div>
+                            <div>
+                              {(set.reps * (set.weight ?? 0)).toFixed(1)}
+                            </div>
                           </div>
                         ))}
-                        <div className="pt-2 border-t text-sm font-medium">
-                          Total: {exercise.sets.reduce((total, set) => total + (set.reps * (set.weight ?? 0)), 0).toFixed(1)} kg
+                        <div className="border-t pt-2 text-sm font-medium">
+                          Total:{" "}
+                          {exercise.sets
+                            .reduce(
+                              (total, set) =>
+                                total + set.reps * (set.weight ?? 0),
+                              0,
+                            )
+                            .toFixed(1)}{" "}
+                          kg
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-600">No sets recorded</div>
+                      <div className="text-sm text-gray-600">
+                        No sets recorded
+                      </div>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-gray-600">No detailed workout data available</div>
+              <div className="text-sm text-gray-600">
+                No detailed workout data available
+              </div>
             )}
           </div>
         )}

@@ -80,9 +80,7 @@ export interface WorkoutSessionDetail {
 }
 
 export class DashboardRepository {
-  async getTodayPlannedWorkouts(
-    userId: string,
-  ): Promise<TodayWorkoutData[]> {
+  async getTodayPlannedWorkouts(userId: string): Promise<TodayWorkoutData[]> {
     const today = getTodayUTC(); // Get today's date in UTC
 
     // Get today's scheduled routines
@@ -132,12 +130,12 @@ export class DashboardRepository {
 
         // Return the routine only if it hasn't been completed today
         return completedSession.length === 0 ? scheduledRoutine : null;
-      })
+      }),
     );
 
     // Filter out null values (completed routines)
     const availableRoutines = routinesNotCompleted.filter(
-      (routine): routine is NonNullable<typeof routine> => routine !== null
+      (routine): routine is NonNullable<typeof routine> => routine !== null,
     );
 
     if (availableRoutines.length === 0) {
@@ -148,7 +146,7 @@ export class DashboardRepository {
     const workoutsWithExercises = await Promise.all(
       availableRoutines.map(async (scheduledRoutine) => {
         const routine = scheduledRoutine.routine;
-        
+
         // Get exercises for this routine from the routine template
         const routineExercisesList = await db
           .select({
@@ -176,7 +174,7 @@ export class DashboardRepository {
             equipment: item.exercise.equipment,
           })),
         };
-      })
+      }),
     );
 
     return workoutsWithExercises;
@@ -254,7 +252,7 @@ export class DashboardRepository {
           totalSets: Number(setsCount[0]?.totalSets || 0),
           notes: session.notes,
         };
-      })
+      }),
     );
 
     return sessionsWithSets;
@@ -438,7 +436,7 @@ export class DashboardRepository {
 
     // Group exercises and their sets
     const exerciseMap = new Map();
-    
+
     exercisesWithSets.forEach((row) => {
       if (!exerciseMap.has(row.exerciseId)) {
         exerciseMap.set(row.exerciseId, {
@@ -449,7 +447,7 @@ export class DashboardRepository {
           sets: [],
         });
       }
-      
+
       if (row.setNumber !== null) {
         exerciseMap.get(row.exerciseId).sets.push({
           setNumber: row.setNumber,

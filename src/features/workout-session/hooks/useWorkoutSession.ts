@@ -115,7 +115,7 @@ export function useWorkoutSession(sessionId: string) {
 
   // Reorder exercises
   const reorderExercises = useCallback(
-    async (reorderedExercises: WorkoutSession['exercises']) => {
+    async (reorderedExercises: WorkoutSession["exercises"]) => {
       if (!session) return;
 
       try {
@@ -214,7 +214,8 @@ export function useWorkoutSession(sessionId: string) {
   // Navigation guard using custom hook
   useBeforeUnload({
     enabled: !!(session?.isActive && !isFinishingWorkout),
-    message: "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?"
+    message:
+      "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?",
   });
 
   // Initial fetch

@@ -23,16 +23,23 @@ const updateSetSchema = z.object({
   sessionExerciseId: z.string().min(1, "Session exercise ID is required"),
   setNumber: z.number().min(1, "Set number must be at least 1"),
   weight: z.number().min(0, "Weight cannot be negative"),
-  reps: z.number().min(1, "Reps must be at least 1").max(100, "Reps cannot exceed 100"),
+  reps: z
+    .number()
+    .min(1, "Reps must be at least 1")
+    .max(100, "Reps cannot exceed 100"),
 });
 
 // Schema for reordering exercises
 const reorderExercisesSchema = z.object({
   sessionId: z.string().min(1, "Session ID is required"),
-  exerciseOrders: z.array(z.object({
-    sessionExerciseId: z.string().min(1, "Session exercise ID is required"),
-    orderIndex: z.number().min(0, "Order index cannot be negative"),
-  })).min(1, "At least one exercise order is required"),
+  exerciseOrders: z
+    .array(
+      z.object({
+        sessionExerciseId: z.string().min(1, "Session exercise ID is required"),
+        orderIndex: z.number().min(0, "Order index cannot be negative"),
+      }),
+    )
+    .min(1, "At least one exercise order is required"),
 });
 
 export async function POST(request: NextRequest) {
@@ -45,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -57,7 +64,7 @@ export async function POST(request: NextRequest) {
       if (!validation.success) {
         return NextResponse.json(
           { success: false, error: validation.error.issues[0].message },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -70,15 +77,15 @@ export async function POST(request: NextRequest) {
         .where(
           and(
             eq(workoutSessions.id, sessionId),
-            eq(workoutSessions.userId, session.user.id)
-          )
+            eq(workoutSessions.userId, session.user.id),
+          ),
         )
         .limit(1);
 
       if (sessionCheck.length === 0) {
         return NextResponse.json(
           { success: false, error: "Session not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -99,7 +106,7 @@ export async function POST(request: NextRequest) {
     } else if (action === "create") {
       // Validate the request body for creating a session
       const validationResult = createSessionSchema.safeParse(body);
-      
+
       if (!validationResult.success) {
         return NextResponse.json(
           {
@@ -107,7 +114,7 @@ export async function POST(request: NextRequest) {
             error: "Validation failed",
             details: validationResult.error.issues,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -170,7 +177,7 @@ export async function POST(request: NextRequest) {
               reps: 0, // Will be updated when user records the set
             });
           }
-          
+
           if (setValues.length > 0) {
             await tx.insert(exerciseSets).values(setValues);
           }
@@ -188,7 +195,7 @@ export async function POST(request: NextRequest) {
     } else if (action === "updateSet") {
       // Validate the request body for updating a set
       const validationResult = updateSetSchema.safeParse(body);
-      
+
       if (!validationResult.success) {
         return NextResponse.json(
           {
@@ -196,11 +203,12 @@ export async function POST(request: NextRequest) {
             error: "Validation failed",
             details: validationResult.error.issues,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      const { sessionExerciseId, setNumber, weight, reps } = validationResult.data;
+      const { sessionExerciseId, setNumber, weight, reps } =
+        validationResult.data;
 
       // Verify the session exercise belongs to the user
       const sessionExercise = await db
@@ -208,19 +216,22 @@ export async function POST(request: NextRequest) {
           sessionId: sessionExercises.sessionId,
         })
         .from(sessionExercises)
-        .innerJoin(workoutSessions, eq(sessionExercises.sessionId, workoutSessions.id))
+        .innerJoin(
+          workoutSessions,
+          eq(sessionExercises.sessionId, workoutSessions.id),
+        )
         .where(
           and(
             eq(sessionExercises.id, sessionExerciseId),
-            eq(workoutSessions.userId, session.user.id)
-          )
+            eq(workoutSessions.userId, session.user.id),
+          ),
         )
         .limit(1);
 
       if (sessionExercise.length === 0) {
         return NextResponse.json(
           { success: false, error: "Session exercise not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -234,8 +245,8 @@ export async function POST(request: NextRequest) {
         .where(
           and(
             eq(exerciseSets.sessionExerciseId, sessionExerciseId),
-            eq(exerciseSets.setNumber, setNumber)
-          )
+            eq(exerciseSets.setNumber, setNumber),
+          ),
         );
 
       return NextResponse.json({
@@ -244,19 +255,23 @@ export async function POST(request: NextRequest) {
       });
     } else {
       return NextResponse.json(
-        { success: false, error: "Invalid action. Supported actions: create, updateSet, reorderExercises" },
-        { status: 400 }
+        {
+          success: false,
+          error:
+            "Invalid action. Supported actions: create, updateSet, reorderExercises",
+        },
+        { status: 400 },
       );
     }
   } catch (error) {
     console.error("Error in workout session API:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

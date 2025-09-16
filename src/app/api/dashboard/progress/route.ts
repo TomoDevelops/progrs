@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -33,15 +33,19 @@ export async function GET(request: NextRequest) {
     if (!queryResult.success) {
       return NextResponse.json(
         { success: false, error: "Invalid query parameters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const { exerciseId, timeframe, metric } = queryResult.data;
 
     // If no exerciseId provided, get the most frequent exercise
-    const targetExerciseId = exerciseId || 
-      await progressRepository.getMostFrequentExercise(session.user.id, timeframe);
+    const targetExerciseId =
+      exerciseId ||
+      (await progressRepository.getMostFrequentExercise(
+        session.user.id,
+        timeframe,
+      ));
 
     if (!targetExerciseId) {
       return NextResponse.json({
@@ -60,10 +64,11 @@ export async function GET(request: NextRequest) {
       session.user.id,
       targetExerciseId,
       timeframe,
-      metric
+      metric,
     );
 
-    const exerciseInfo = await progressRepository.getExerciseInfo(targetExerciseId);
+    const exerciseInfo =
+      await progressRepository.getExerciseInfo(targetExerciseId);
 
     return NextResponse.json({
       success: true,
@@ -79,7 +84,7 @@ export async function GET(request: NextRequest) {
     console.error("Progress API error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

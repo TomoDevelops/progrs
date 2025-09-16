@@ -33,9 +33,10 @@ export async function GET(request: NextRequest) {
     const response: ApiSuccessResponse<typeof todayWorkouts> = {
       success: true,
       data: todayWorkouts,
-      message: todayWorkouts.length > 0
-        ? "Today's workouts retrieved successfully"
-        : "No workouts scheduled for today",
+      message:
+        todayWorkouts.length > 0
+          ? "Today's workouts retrieved successfully"
+          : "No workouts scheduled for today",
     };
 
     return NextResponse.json(response, { status: 200 });

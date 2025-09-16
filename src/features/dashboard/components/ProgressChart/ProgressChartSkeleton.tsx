@@ -8,7 +8,7 @@ export const ProgressChartSkeleton = () => {
         <Skeleton className="h-10 w-full sm:w-[250px]" />
         <Skeleton className="h-10 w-full sm:w-[120px]" />
       </div>
-      
+
       {/* Chart skeleton */}
       <div className="h-64 w-full">
         <div className="flex h-full">
@@ -20,19 +20,19 @@ export const ProgressChartSkeleton = () => {
             <Skeleton className="h-3 w-6" />
             <Skeleton className="h-3 w-6" />
           </div>
-          
+
           {/* Chart area */}
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             {/* Grid lines */}
             <div className="absolute inset-0 flex flex-col justify-between py-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-px w-full opacity-30" />
               ))}
             </div>
-            
+
             {/* Data line simulation */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-end justify-between w-full px-4 h-32">
+              <div className="flex h-32 w-full items-end justify-between px-4">
                 {Array.from({ length: 7 }).map((_, i) => (
                   <Skeleton key={i} className="h-2 w-2 rounded-full" />
                 ))}
@@ -40,9 +40,9 @@ export const ProgressChartSkeleton = () => {
             </div>
           </div>
         </div>
-        
+
         {/* X-axis labels */}
-        <div className="flex justify-between pl-10 pr-4 mt-2">
+        <div className="mt-2 flex justify-between pr-4 pl-10">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-3 w-8" />
           ))}

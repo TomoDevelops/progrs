@@ -1,7 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Locale } from 'date-fns';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { Locale } from "date-fns";
 import {
   SupportedLocaleCode,
   LocaleConfig,
@@ -13,23 +19,23 @@ import {
   getFirstDayOfWeek,
   getDateFormat,
   getTimeFormat,
-} from '@/shared/config/locale/locale.config';
+} from "@/shared/config/locale/locale.config";
 
 interface LocaleContextValue {
   // Current locale state
   locale: SupportedLocaleCode;
   localeConfig: LocaleConfig;
   dateFnsLocale: Locale | null;
-  
+
   // Locale management
   setLocale: (locale: SupportedLocaleCode) => void;
-  
+
   // Convenience getters
   isRTL: boolean;
   firstDayOfWeek: number;
   dateFormat: string;
-  timeFormat: '12h' | '24h';
-  
+  timeFormat: "12h" | "24h";
+
   // Loading state
   isLoading: boolean;
 }
@@ -41,9 +47,12 @@ interface LocaleProviderProps {
   defaultLocale?: SupportedLocaleCode;
 }
 
-export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps) {
+export function LocaleProvider({
+  children,
+  defaultLocale,
+}: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<SupportedLocaleCode>(
-    defaultLocale || detectUserLocale()
+    defaultLocale || detectUserLocale(),
   );
   const [dateFnsLocale, setDateFnsLocale] = useState<Locale | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +62,7 @@ export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps)
   // Load date-fns locale when locale changes
   useEffect(() => {
     let isCancelled = false;
-    
+
     const loadDateFnsLocale = async () => {
       setIsLoading(true);
       try {
@@ -62,7 +71,7 @@ export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps)
           setDateFnsLocale(dateFnsLoc);
         }
       } catch (error) {
-        console.error('Failed to load date-fns locale:', error);
+        console.error("Failed to load date-fns locale:", error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -110,7 +119,7 @@ export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps)
 export function useLocale(): LocaleContextValue {
   const context = useContext(LocaleContext);
   if (context === undefined) {
-    throw new Error('useLocale must be used within a LocaleProvider');
+    throw new Error("useLocale must be used within a LocaleProvider");
   }
   return context;
 }
@@ -127,27 +136,24 @@ export function useLocaleFormatters() {
 
   const formatCurrency = (
     value: number,
-    currency: string = 'USD',
-    options?: Intl.NumberFormatOptions
+    currency: string = "USD",
+    options?: Intl.NumberFormatOptions,
   ) => {
     return new Intl.NumberFormat(locale, {
-      style: 'currency',
+      style: "currency",
       currency,
       ...options,
     }).format(value);
   };
 
-  const formatDate = (
-    date: Date,
-    options?: Intl.DateTimeFormatOptions
-  ) => {
+  const formatDate = (date: Date, options?: Intl.DateTimeFormatOptions) => {
     return new Intl.DateTimeFormat(locale, options).format(date);
   };
 
   const formatRelativeTime = (
     value: number,
     unit: Intl.RelativeTimeFormatUnit,
-    options?: Intl.RelativeTimeFormatOptions
+    options?: Intl.RelativeTimeFormatOptions,
   ) => {
     return new Intl.RelativeTimeFormat(locale, options).format(value, unit);
   };
@@ -178,7 +184,7 @@ export function useLocaleDateOperations() {
  * Higher-order component to provide locale context
  */
 export function withLocale<P extends object>(
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
 ) {
   return function LocaleWrappedComponent(props: P) {
     return (

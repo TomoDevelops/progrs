@@ -26,7 +26,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const { countdown, start: startCountdown } = useCountdown();
 
   const email = searchParams.get("email") || "";
@@ -34,8 +34,6 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
   const isEmailVerification = type === "email-verification";
   const isPasswordReset = type === "password-reset";
-
-
 
   const handleFormSubmit = async (otpCode: string) => {
     if (otpCode.length !== 6) {

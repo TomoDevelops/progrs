@@ -1,7 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ProgressDataPoint, ExerciseInfo } from "@/app/api/dashboard/progress/repository/progress.repository";
+import type {
+  ProgressDataPoint,
+  ExerciseInfo,
+} from "@/app/api/dashboard/progress/repository/progress.repository";
 
 export interface ProgressData {
   exerciseId: string | null;
@@ -20,7 +23,7 @@ export interface ExercisesData {
 export const useProgressData = (
   exerciseId?: string,
   timeframe: "4W" | "8W" | "3M" | "1Y" | "ALL" = "8W",
-  metric: "weight" | "reps" | "volume" = "weight"
+  metric: "weight" | "reps" | "volume" = "weight",
 ) => {
   return useQuery({
     queryKey: ["progress", exerciseId, timeframe, metric],
@@ -29,19 +32,19 @@ export const useProgressData = (
         timeframe,
         metric,
       });
-      
+
       if (exerciseId) {
         params.append("exerciseId", exerciseId);
       }
 
       const response = await fetch(`/api/dashboard/progress?${params}`);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch progress data");
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || "Failed to fetch progress data");
       }
@@ -57,14 +60,16 @@ export const useFavoriteExercises = () => {
   return useQuery({
     queryKey: ["exercises", "favorites"],
     queryFn: async (): Promise<ExercisesData> => {
-      const response = await fetch("/api/dashboard/progress/exercises?type=favorites");
-      
+      const response = await fetch(
+        "/api/dashboard/progress/exercises?type=favorites",
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch favorite exercises");
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || "Failed to fetch favorite exercises");
       }
@@ -79,7 +84,7 @@ export const useFavoriteExercises = () => {
 export const useAllExercises = (
   search?: string,
   offset: number = 0,
-  limit: number = 20
+  limit: number = 20,
 ) => {
   return useQuery({
     queryKey: ["exercises", "all", search, offset, limit],
@@ -89,19 +94,21 @@ export const useAllExercises = (
         offset: offset.toString(),
         limit: limit.toString(),
       });
-      
+
       if (search) {
         params.append("search", search);
       }
 
-      const response = await fetch(`/api/dashboard/progress/exercises?${params}`);
-      
+      const response = await fetch(
+        `/api/dashboard/progress/exercises?${params}`,
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch exercises");
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || "Failed to fetch exercises");
       }

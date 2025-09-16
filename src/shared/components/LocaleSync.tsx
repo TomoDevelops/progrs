@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useLocale } from '@/shared/providers/LocaleProvider';
+import { useEffect } from "react";
+import { useLocale } from "@/shared/providers/LocaleProvider";
 
 /**
  * Client-side component that syncs locale changes with HTML attributes
@@ -15,21 +15,21 @@ export function LocaleSync() {
     if (document.documentElement.lang !== locale) {
       document.documentElement.lang = locale;
     }
-    
+
     const currentDir = document.documentElement.dir;
-    const expectedDir = isRTL ? 'rtl' : 'ltr';
-    
+    const expectedDir = isRTL ? "rtl" : "ltr";
+
     if (currentDir !== expectedDir) {
       document.documentElement.dir = expectedDir;
     }
-    
+
     // Update RTL class
-    const hasRTLClass = document.documentElement.classList.contains('rtl');
-    
+    const hasRTLClass = document.documentElement.classList.contains("rtl");
+
     if (isRTL && !hasRTLClass) {
-      document.documentElement.classList.add('rtl');
+      document.documentElement.classList.add("rtl");
     } else if (!isRTL && hasRTLClass) {
-      document.documentElement.classList.remove('rtl');
+      document.documentElement.classList.remove("rtl");
     }
   }, [isRTL, locale]);
 

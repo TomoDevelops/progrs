@@ -1,1 +1,1 @@
-export { WorkoutSessionContent } from './WorkoutSessionContent';
+export { WorkoutSessionContent } from "./WorkoutSessionContent";

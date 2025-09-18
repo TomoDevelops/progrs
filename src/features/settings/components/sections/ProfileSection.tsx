@@ -54,6 +54,7 @@ export const ProfileSection = React.forwardRef<
       const result = await response.json();
       return result.data;
     },
+    enabled: true, // Server-side auth ensures user is authenticated
   });
 
   // Update form data when profile loads

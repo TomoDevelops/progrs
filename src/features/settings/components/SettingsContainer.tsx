@@ -30,7 +30,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
-import { useAuthenticatedSession } from "@/shared/hooks/useSession";
+
 import { authClient } from "@/shared/lib/auth-client";
 import {
   User,
@@ -116,8 +116,6 @@ const navigationItems = [
 ];
 
 export function SettingsContainer() {
-  // Verify session and redirect to login if not authenticated
-  useAuthenticatedSession();
 
   const [activeSection, setActiveSection] =
     useState<SettingsSection>("profile");

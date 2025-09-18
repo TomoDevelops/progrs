@@ -15,7 +15,7 @@ interface UseWeeklyStatsReturn {
   error: Error | null;
 }
 
-export function useWeeklyStats(): UseWeeklyStatsReturn {
+export function useWeeklyStats(enabled: boolean = true): UseWeeklyStatsReturn {
   const { data, isLoading, error } = useQuery<WeeklyStatsResponse>({
     queryKey: ["weekly-stats"],
     queryFn: async () => {
@@ -27,6 +27,7 @@ export function useWeeklyStats(): UseWeeklyStatsReturn {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled, // Only fetch when enabled
   });
 
   return {

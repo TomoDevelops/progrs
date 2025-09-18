@@ -250,16 +250,14 @@ export class ProgressRepository {
     const now = new Date();
 
     switch (timeframe) {
-      case "4W":
-        return { start: subWeeks(now, 4), end: now };
+      case "2W":
+        return { start: subWeeks(now, 2), end: now };
       case "8W":
         return { start: subWeeks(now, 8), end: now };
-      case "3M":
-        return { start: subMonths(now, 3), end: now };
+      case "6M":
+        return { start: subMonths(now, 6), end: now };
       case "1Y":
         return { start: subYears(now, 1), end: now };
-      case "ALL":
-        return {};
       default:
         return { start: subWeeks(now, 8), end: now };
     }

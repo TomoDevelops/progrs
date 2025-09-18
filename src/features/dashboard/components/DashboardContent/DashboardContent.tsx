@@ -7,10 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Loader2, Dumbbell } from "lucide-react";
+import { Repeat } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { useActiveSession } from "@/features/dashboard/hooks/useActiveSession";
+import { useWeeklyStats } from "@/features/dashboard/hooks/useWeeklyStats";
 import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
 import { useState } from "react";
@@ -22,9 +24,22 @@ import type {
 import { WorkoutDetailModal } from "@/features/dashboard/components/WorkoutDetailModal/WorkoutDetailModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { TodayWorkoutCarousel } from "@/features/dashboard/components/TodayWorkoutCarousel";
+import { TodayWorkoutCard } from "@/features/dashboard/components/TodayWorkoutCard";
+import { ThisWeekCard } from "@/features/dashboard/components/ThisWeekCard";
 import { formatDateForLocale } from "@/shared/utils/date";
 import { ProgressChart } from "@/features/dashboard/components/ProgressChart";
+import { CalendarHeatmap } from "@/features/dashboard/components/CalendarHeatmap";
+import { ProgressBadges } from "@/features/dashboard/components/ProgressBadges/ProgressBadges";
+import { TodayWorkoutCardSkeleton } from "@/features/dashboard/components/TodayWorkoutCard/TodayWorkoutCardSkeleton";
+import { ThisWeekCardSkeleton } from "@/features/dashboard/components/ThisWeekCard/ThisWeekCardSkeleton";
+import { ProgressChartSkeleton } from "@/features/dashboard/components/ProgressChart/ProgressChartSkeleton";
+import { CalendarHeatmapSkeleton } from "@/features/dashboard/components/CalendarHeatmap/CalendarHeatmapSkeleton";
+import { ProgressBadgesSkeleton } from "@/features/dashboard/components/ProgressBadges/ProgressBadgesSkeleton";
+import { WorkoutHistorySkeleton } from "@/features/dashboard/components/WorkoutHistorySkeleton/WorkoutHistorySkeleton";
+import { WorkoutHistoryEmpty } from "@/features/dashboard/components/WorkoutHistoryEmpty/WorkoutHistoryEmpty";
+import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton";
+import { ErrorBoundary } from "@/features/dashboard/components/ErrorBoundary";
+import { DashboardErrorFallback } from "@/features/dashboard/components/DashboardErrorFallback";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
@@ -32,29 +47,68 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
+  const {} = useActiveSession();
+  const router = useRouter();
+  const {
+    currentWeek,
+    lastWeek,
+    isLoading: weeklyStatsLoading,
+  } = useWeeklyStats();
 
   // Only enable data fetching when user is authenticated and not loading
   const isDataEnabled = !!user && !authLoading;
 
-  const {
-    stats,
-    todayWorkouts,
-    history,
-    consistency,
-    isLoading: dataLoading,
-    isError,
-    error,
-  } = useDashboardData(isDataEnabled);
+  const { stats, todayWorkouts, history, consistency, isError, error } =
+    useDashboardData(isDataEnabled);
   const [selectedWorkout, setSelectedWorkout] =
     useState<WorkoutHistoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [, setIsStartingWorkout] = useState(false);
+  const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState(0);
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const handleWorkoutClick = (workout: WorkoutHistoryItem) => {
     setSelectedWorkout(workout);
     setIsModalOpen(true);
+  };
+
+  const handleRepeatWorkout = async (
+    workout: WorkoutHistoryItem,
+    e: React.MouseEvent,
+  ) => {
+    e.stopPropagation();
+    if (!workout.id) {
+      toast.error("Invalid workout selected");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/workout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "repeat",
+          sessionId: workout.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to repeat workout");
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.sessionId) {
+        toast.success("Workout repeated!");
+        router.push(`/workout-session/${result.data.sessionId}`);
+        return;
+      }
+      throw new Error(result.error || "Failed to repeat workout");
+    } catch (error) {
+      console.error("Error repeating workout:", error);
+      toast.error("Failed to repeat workout. Please try again.");
+    }
   };
 
   const handleStartWorkout = async (workout: TodayWorkoutData) => {
@@ -85,9 +139,9 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
       if (result.success && result.data?.sessionId) {
         toast.success("Workout started!");
         router.push(`/workout-session/${result.data.sessionId}`);
-      } else {
-        throw new Error(result.error || "Failed to start workout");
+        return;
       }
+      throw new Error(result.error || "Failed to start workout");
     } catch (error) {
       console.error("Error starting workout:", error);
       toast.error("Failed to start workout. Please try again.");
@@ -96,14 +150,9 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
     }
   };
 
-  const isLoading = authLoading || dataLoading;
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  // Show full skeleton during initial auth loading
+  if (authLoading) {
+    return <DashboardSkeleton />;
   }
 
   if (isError) {
@@ -117,14 +166,6 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             {error?.message || "Something went wrong"}
           </p>
         </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -148,7 +189,18 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <Header onSignOut={handleSignOut} />
+      <Header
+        onSignOut={handleSignOut}
+        onStartWorkout={() => {
+          const selectedWorkout = todayWorkouts.data?.[selectedWorkoutIndex];
+          if (selectedWorkout) {
+            handleStartWorkout(selectedWorkout);
+          }
+        }}
+        hasWorkoutsToday={
+          !!(todayWorkouts.data && todayWorkouts.data.length > 0)
+        }
+      />
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -167,7 +219,9 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                     </p>
                   </div>
                   <Button
+                    variant="default"
                     size="sm"
+                    radius="default"
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     Verify now
@@ -177,226 +231,238 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
             </Card>
           </div>
         )}
-        {/* Header Section */}
+        {/* Header Section with Hero CTA */}
         <div className="mb-8">
-          <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900">
-            Good {greeting}, {user.name || user.username}!
-            <Image
-              src="/wave.png"
-              alt="Hand waving icon"
-              className="hidden rounded-full lg:block"
-              height={32}
-              width={32}
-            />
-          </h1>
-          <p className="mt-2 text-gray-600">{currentDate}</p>
-        </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900">
+                Good {greeting}, {user.name || user.username}!
+                <Image
+                  src="/wave.png"
+                  alt="Hand waving icon"
+                  className="hidden rounded-full lg:block"
+                  height={32}
+                  width={32}
+                />
+              </h1>
+              <p className="mt-2 text-gray-600">{currentDate}</p>
+            </div>
 
-        {/* Create New Button */}
-        <div className="flex items-center justify-end">
-          <CreateWorkoutRoutineDialog
-            trigger={
-              <Button
-                size="lg"
-                className="h-14 rounded-full bg-slate-900 shadow-lg hover:bg-slate-800"
-              >
-                <Dumbbell className="h-9 w-9" />
-                <p className="text-sm text-white">Create New Routine</p>
-              </Button>
-            }
-            onSuccess={() => {
-              // Invalidate and refetch dashboard data when a new routine is created
-              queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-            }}
-          />
-        </div>
-
-        {/* Top Row - Today's Workout, Quick Start, Daily Goal */}
-        <div className="my-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Today's Planned Workout Carousel */}
-          <div className="lg:col-span-5">
-            <TodayWorkoutCarousel
-              workouts={todayWorkouts.data || []}
-              onStartWorkout={handleStartWorkout}
-              isStartingWorkout={isStartingWorkout}
-            />
-          </div>
-
-          {/* Progress Chart */}
-          <div className="lg:col-span-7">
-            <ProgressChart />
+            {/* Hero CTA - Start/Resume Logic */}
+            <div className="flex items-center gap-4">
+              <CreateWorkoutRoutineDialog
+                trigger={
+                  <Button variant="outline" size="lg" className="h-12">
+                    Create routine
+                  </Button>
+                }
+                onSuccess={() => {
+                  queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+                }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Middle Row - Workout History, Stats, and Trending Metrics */}
-        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Workout History Feed */}
-          <Card className="lg:col-span-5">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="text-lg font-medium tracking-wide">
-                  Recent Workouts
-                </span>
-                <Button variant="ghost" size="sm">
-                  View All
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {history.data && history.data.length > 0 ? (
-                history.data.slice(0, 3).map((workout, index) => {
-                  const exerciseImages = [
-                    "/all-in-one-training.png",
-                    "/barbell.png",
-                    "/dumbbell.png",
-                  ];
-                  const imageIndex = index % exerciseImages.length;
-
-                  return (
-                    <div
-                      key={workout.id}
-                      className="flex cursor-pointer items-center space-x-4 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
-                      onClick={() => handleWorkoutClick(workout)}
-                    >
-                      <div className="relative h-8 w-8">
-                        <Image
-                          src={exerciseImages[imageIndex]}
-                          alt="Exercise type"
-                          width={32}
-                          height={32}
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium">{workout.routineName}</h4>
-                        <p className="text-sm text-gray-600">
-                          {workout.endedAt
-                            ? formatDateForLocale(
-                                new Date(workout.endedAt),
-                                userLocale,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )
-                            : "In progress"}{" "}
-                          •
-                          {workout.totalDuration
-                            ? `${workout.totalDuration} min`
-                            : "Duration not recorded"}
-                        </p>
-                        <p className="text-sm font-medium text-blue-600">
-                          {workout.totalSets} sets • {workout.totalExercises}{" "}
-                          exercises
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-gray-600">
-                  No recent workouts found
-                </p>
+        {/* Row 1 - Today's Workout (2/3) and This Week KPIs (1/3) */}
+        <div className="my-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Today's Workout Card - 2/3 width */}
+          <div className="lg:col-span-2">
+            <ErrorBoundary
+              fallback={(props) => (
+                <DashboardErrorFallback
+                  {...props}
+                  title="Failed to load today's workout"
+                  queryKey={["dashboard", "todayWorkouts"]}
+                />
               )}
-            </CardContent>
-          </Card>
+            >
+              {todayWorkouts.isLoading ? (
+                <TodayWorkoutCardSkeleton />
+              ) : (
+                <TodayWorkoutCard
+                  workouts={todayWorkouts.data || []}
+                  selectedIndex={selectedWorkoutIndex}
+                  onWorkoutIndexChange={setSelectedWorkoutIndex}
+                />
+              )}
+            </ErrorBoundary>
+          </div>
 
-          {/* Summary Stats Cards */}
-          <div className="space-y-6 lg:col-span-7">
-            {/* This Week Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-medium tracking-wide">
-                  This Week
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">5</div>
-                    <p className="text-sm text-gray-600">Workouts</p>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
-                      4h 15m
-                    </div>
-                    <p className="text-sm text-gray-600">Duration</p>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      12.5k
-                    </div>
-                    <p className="text-sm text-gray-600">kg lifted</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* This Week KPIs Card - 1/3 width */}
+          <div className="lg:col-span-1">
+            <ErrorBoundary
+              fallback={(props) => (
+                <DashboardErrorFallback
+                  {...props}
+                  title="Failed to load weekly stats"
+                  queryKey={["weeklyStats"]}
+                />
+              )}
+            >
+              {weeklyStatsLoading ? (
+                <ThisWeekCardSkeleton />
+              ) : (
+                <ThisWeekCard
+                  currentWeek={
+                    currentWeek || { workouts: 0, duration: 0, volume: 0 }
+                  }
+                  lastWeek={lastWeek}
+                />
+              )}
+            </ErrorBoundary>
+          </div>
+        </div>
 
-            {/* Consistency Chart */}
+        {/* Row 2 - Progress Chart (full width) */}
+        <div className="my-6">
+          <ErrorBoundary
+            fallback={(props) => (
+              <DashboardErrorFallback
+                {...props}
+                title="Failed to load progress chart"
+                queryKey={["dashboard", "consistency"]}
+              />
+            )}
+          >
+            {consistency.isLoading ? (
+              <ProgressChartSkeleton />
+            ) : (
+              <ProgressChart />
+            )}
+          </ErrorBoundary>
+        </div>
+
+        {/* Row 3 - Recent Workouts (left) and Progress Moments/Heatmap (right) */}
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Workout History Feed - Left Column */}
+          <ErrorBoundary
+            fallback={(props) => (
+              <DashboardErrorFallback
+                {...props}
+                title="Failed to load workout history"
+                queryKey={["dashboard", "history"]}
+              />
+            )}
+          >
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="text-lg font-medium tracking-wide">
-                    Recent Days
+                    Recent Workouts
                   </span>
                   <Button variant="ghost" size="sm">
-                    View Chart
+                    View All
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {/* Use a proper bar chart */}
-                <div className="flex h-20 items-end justify-between space-x-2">
-                  {consistency.data && consistency.data.length > 0
-                    ? consistency.data.slice(-7).map((day, index) => {
-                        const maxWorkouts = Math.max(
-                          ...consistency.data.map((d) => d.workoutsCompleted),
-                          1,
-                        );
-                        return (
-                          <div
-                            key={index}
-                            className="flex flex-1 flex-col items-center"
-                          >
-                            <div
-                              className="w-full rounded-t bg-blue-600"
-                              style={{
-                                height: `${(day.workoutsCompleted / maxWorkouts) * 100}%`,
-                                minHeight: "4px",
-                              }}
-                            />
-                            <span className="mt-1 text-xs text-gray-600">
-                              {formatDateForLocale(
-                                new Date(day.date),
-                                userLocale,
-                                {
-                                  weekday: "short",
-                                },
-                              ).charAt(0)}
-                            </span>
-                          </div>
-                        );
-                      })
-                    : Array.from({ length: 7 }, (_, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-1 flex-col items-center"
-                        >
-                          <div
-                            className="w-full rounded-t bg-gray-200"
-                            style={{
-                              height: "4px",
-                            }}
+              <CardContent className="space-y-4">
+                {history.isLoading ? (
+                  <WorkoutHistorySkeleton count={3} />
+                ) : history.data && history.data.length > 0 ? (
+                  history.data.slice(0, 3).map((workout, index) => {
+                    const exerciseImages = [
+                      "/all-in-one-training.png",
+                      "/barbell.png",
+                      "/dumbbell.png",
+                    ];
+                    const imageIndex = index % exerciseImages.length;
+
+                    return (
+                      <div
+                        key={workout.id}
+                        className="group flex cursor-pointer items-center space-x-4 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
+                        onClick={() => handleWorkoutClick(workout)}
+                      >
+                        <div className="relative h-8 w-8">
+                          <Image
+                            src={exerciseImages[imageIndex]}
+                            alt="Exercise type"
+                            width={32}
+                            height={32}
+                            className="object-contain"
                           />
-                          <span className="mt-1 text-xs text-gray-600">
-                            {["S", "M", "T", "W", "T", "F", "S"][index]}
-                          </span>
                         </div>
-                      ))}
-                </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{workout.routineName}</h4>
+                          <p className="text-sm text-gray-600">
+                            {workout.endedAt
+                              ? formatDateForLocale(
+                                  new Date(workout.endedAt),
+                                  userLocale,
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )
+                              : "In progress"}{" "}
+                            •
+                            {workout.totalDuration
+                              ? `${workout.totalDuration} min`
+                              : "Duration not recorded"}
+                          </p>
+                          <p className="text-sm font-medium text-blue-600">
+                            {workout.totalSets} sets • {workout.totalExercises}{" "}
+                            exercises
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-1 opacity-0 transition-opacity group-hover:opacity-100">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                            onClick={(e) => handleRepeatWorkout(workout, e)}
+                            title="Repeat workout"
+                          >
+                            <Repeat className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : history.data && history.data.length === 0 ? (
+                  <WorkoutHistoryEmpty />
+                ) : null}
               </CardContent>
             </Card>
+          </ErrorBoundary>
+
+          {/* Progress Moments and Activity Heatmap - Right Column */}
+          <div className="space-y-6">
+            {/* Progress Badges/Moments */}
+            <ErrorBoundary
+              fallback={(props) => (
+                <DashboardErrorFallback
+                  {...props}
+                  title="Failed to load progress badges"
+                  queryKey={["dashboard", "stats"]}
+                />
+              )}
+            >
+              {stats.isLoading ? (
+                <ProgressBadgesSkeleton />
+              ) : (
+                <ProgressBadges />
+              )}
+            </ErrorBoundary>
+
+            {/* Activity Heatmap */}
+            <ErrorBoundary
+              fallback={(props) => (
+                <DashboardErrorFallback
+                  {...props}
+                  title="Failed to load activity heatmap"
+                  queryKey={["dashboard", "consistency"]}
+                />
+              )}
+            >
+              {consistency.isLoading ? (
+                <CalendarHeatmapSkeleton />
+              ) : (
+                <CalendarHeatmap data={consistency.data || []} />
+              )}
+            </ErrorBoundary>
           </div>
         </div>
       </main>

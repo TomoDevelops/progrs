@@ -55,23 +55,23 @@ export async function GET(request: NextRequest) {
           hasMore: false,
         },
       });
-    } else {
-      const result = await progressRepository.getAllUserExercises(
-        session.user.id,
-        search,
-        offset,
-        limit,
-      );
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          exercises: result.exercises,
-          total: result.total,
-          hasMore: offset + limit < result.total,
-        },
-      });
     }
+
+    const result = await progressRepository.getAllUserExercises(
+      session.user.id,
+      search,
+      offset,
+      limit,
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        exercises: result.exercises,
+        total: result.total,
+        hasMore: offset + limit < result.total,
+      },
+    });
   } catch (error) {
     console.error("Exercises API error:", error);
     return NextResponse.json(

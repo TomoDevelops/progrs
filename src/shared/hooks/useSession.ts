@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/shared/lib/auth-client";
@@ -34,7 +35,7 @@ export const useSession = (options?: { redirectOnError?: boolean }) => {
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
-    throwOnError: (error) => {
+    throwOnError: () => {
       if (redirectOnError) {
         router.push("/login");
       }
@@ -46,21 +47,19 @@ export const useSession = (options?: { redirectOnError?: boolean }) => {
 export const useAuthenticatedSession = () => {
   const router = useRouter();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["session"],
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
-    throwOnError: (error, query) => {
-      router.push("/login");
-      return false;
-    },
-    select: (data) => {
-      if (!data) {
-        router.push("/login");
-        throw new Error("No session found");
-      }
-      return data;
-    },
   });
+
+  // Handle navigation in useEffect to avoid setState during render
+  React.useEffect(() => {
+    if (query.isError || (query.isSuccess && !query.data)) {
+      router.push("/login");
+    }
+  }, [query.isError, query.isSuccess, query.data, router]);
+
+  return query;
 };

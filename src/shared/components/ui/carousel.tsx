@@ -80,7 +80,10 @@ function Carousel({
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         scrollPrev();
-      } else if (event.key === "ArrowRight") {
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
         event.preventDefault();
         scrollNext();
       }

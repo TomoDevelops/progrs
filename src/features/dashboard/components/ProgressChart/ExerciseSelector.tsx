@@ -65,9 +65,10 @@ export const ExerciseSelector = ({
         onValueChange={(value) => {
           if (value === "view-all") {
             setIsModalOpen(true);
-          } else {
-            onExerciseChange(value);
+            return;
           }
+
+          onExerciseChange(value);
         }}
       >
         <SelectTrigger className="w-full sm:w-[250px]">

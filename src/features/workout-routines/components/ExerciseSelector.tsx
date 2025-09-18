@@ -48,9 +48,10 @@ export function ExerciseSelector({
 
       if (data.success) {
         setExercises(data.data);
-      } else {
-        setError(data.error || "Failed to fetch exercises");
+        return;
       }
+
+      setError(data.error || "Failed to fetch exercises");
     } catch (err) {
       setError("Failed to fetch exercises");
       console.error("Error fetching exercises:", err);

@@ -311,12 +311,12 @@ export async function PATCH(
           totalDuration,
         },
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: "Invalid action" },
-        { status: 400 },
-      );
     }
+
+    return NextResponse.json(
+      { success: false, error: "Invalid action" },
+      { status: 400 },
+    );
   } catch (error) {
     console.error("Error updating workout session:", error);
 

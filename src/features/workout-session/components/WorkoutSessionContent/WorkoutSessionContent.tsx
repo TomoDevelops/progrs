@@ -287,7 +287,7 @@ export function WorkoutSessionContent({
                           : "border-gray-300 bg-white"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between px-8">
                     <div className="flex items-center gap-3">
                       {isCompleted && (
                         <CheckCircle className="h-5 w-5 text-green-600" />

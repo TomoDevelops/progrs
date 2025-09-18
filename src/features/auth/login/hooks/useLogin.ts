@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/shared/lib/auth-client";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 export interface LoginFormData {
   email: string;
@@ -20,6 +21,7 @@ export interface UseLoginReturn {
   // Actions
   handleFormSubmit: (data: LoginFormData) => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
+  handleLineSignIn: () => Promise<void>;
 }
 
 export const useLogin = (): UseLoginReturn => {
@@ -28,6 +30,7 @@ export const useLogin = (): UseLoginReturn => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { handleSocialAuth, error: authError } = useAuth();
 
   // Handle success message directly from searchParams without useEffect
   const message = searchParams.get("message");
@@ -63,20 +66,28 @@ export const useLogin = (): UseLoginReturn => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
+      setError("");
+      await handleSocialAuth("google", "login");
     } catch {
-      setError("Failed to sign in with Google");
+      setError("Failed to initiate Google sign in");
+    }
+  };
+
+  const handleLineSignIn = async () => {
+    try {
+      setError("");
+      await handleSocialAuth("line", "login");
+    } catch {
+      setError("Failed to initiate LINE sign in");
     }
   };
 
   return {
     isLoading,
-    error,
+    error: error || authError,
     successMessage,
     handleFormSubmit,
     handleGoogleSignIn,
+    handleLineSignIn,
   };
 };

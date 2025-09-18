@@ -122,8 +122,10 @@ export function TodayWorkoutCarousel({
             <Button
               onClick={() => onStartWorkout(workout)}
               disabled={isStartingWorkout}
-              className="w-full"
+              variant="default"
               size="lg"
+              radius="default"
+              className="w-full"
             >
               <Play className="mr-2 h-4 w-4" />
               {isStartingWorkout ? "Starting..." : "Start Workout"}
@@ -212,6 +214,7 @@ export function TodayWorkoutCarousel({
                               <Button
                                 variant="outline"
                                 size="lg"
+                                radius="default"
                                 onClick={() => api?.scrollPrev()}
                                 disabled={current === 1}
                                 className="flex-shrink-0"
@@ -221,8 +224,10 @@ export function TodayWorkoutCarousel({
                               <Button
                                 onClick={() => onStartWorkout(workout)}
                                 disabled={isStartingWorkout}
-                                className="flex-1"
+                                variant="default"
                                 size="lg"
+                                radius="default"
+                                className="flex-1"
                               >
                                 <Play className="mr-2 h-4 w-4" />
                                 {isStartingWorkout
@@ -232,6 +237,7 @@ export function TodayWorkoutCarousel({
                               <Button
                                 variant="outline"
                                 size="lg"
+                                radius="default"
                                 onClick={() => api?.scrollNext()}
                                 disabled={current === count}
                                 className="flex-shrink-0"

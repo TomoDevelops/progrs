@@ -24,20 +24,14 @@ export function ExerciseCard({
   onUpdateSet,
   isUpdatingSet,
 }: ExerciseCardProps) {
-  const [editingSet, setEditingSet] = useState<string | null>(null);
+  const [recordingSet, setRecordingSet] = useState<string | null>(null);
   const [tempWeight, setTempWeight] = useState<string>("");
   const [tempReps, setTempReps] = useState<string>("");
 
-  const handleSetEdit = (
-    setId: string,
-    currentWeight?: number,
-    currentReps?: number,
-  ) => {
-    setEditingSet(setId);
-    setTempWeight(
-      currentWeight?.toString() || exercise.targetWeight?.toString() || "",
-    );
-    setTempReps(currentReps?.toString() || exercise.maxReps?.toString() || "");
+  const handleSetRecord = (setId: string) => {
+    setRecordingSet(setId);
+    setTempWeight(exercise.targetWeight?.toString() || "");
+    setTempReps(exercise.maxReps?.toString() || "");
   };
 
   const handleSetSave = async (setId: string, setNumber: number) => {
@@ -56,14 +50,14 @@ export function ExerciseCard({
         reps,
         isNewSet,
       });
-      setEditingSet(null);
+      setRecordingSet(null);
       setTempWeight("");
       setTempReps("");
     }
   };
 
   const handleSetCancel = () => {
-    setEditingSet(null);
+    setRecordingSet(null);
     setTempWeight("");
     setTempReps("");
   };
@@ -109,8 +103,9 @@ export function ExerciseCard({
       <CardContent>
         <div className="space-y-3">
           {exercise.sets.map((set, index) => {
-            const isEditing = editingSet === set.id;
-            const isCurrentlyUpdating = isUpdatingSet && editingSet === set.id;
+            const isRecording = recordingSet === set.id;
+            const isCurrentlyUpdating =
+              isUpdatingSet && recordingSet === set.id;
 
             return (
               <div
@@ -142,7 +137,7 @@ export function ExerciseCard({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {isEditing ? (
+                    {isRecording ? (
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                           <Input
@@ -218,21 +213,17 @@ export function ExerciseCard({
                             Click Record to add weight and reps
                           </span>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleSetEdit(
-                              set.id,
-                              set.weight || undefined,
-                              set.reps,
-                            )
-                          }
-                          disabled={isUpdatingSet}
-                          className="h-8 px-3"
-                        >
-                          {set.weight && set.reps ? "Edit" : "Record"}
-                        </Button>
+                        {!set.weight || !set.reps ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSetRecord(set.id)}
+                            disabled={isUpdatingSet}
+                            className="h-8 px-3"
+                          >
+                            Record
+                          </Button>
+                        ) : null}
                       </div>
                     )}
                   </div>

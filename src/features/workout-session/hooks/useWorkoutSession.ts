@@ -39,9 +39,10 @@ export function useWorkoutSession(sessionId: string) {
           endedAt: result.data.endedAt ? new Date(result.data.endedAt) : null,
         };
         setSession(sessionData);
-      } else {
-        setError(result.error || "Failed to fetch workout session");
+        return;
       }
+
+      setError(result.error || "Failed to fetch workout session");
     } catch (err) {
       console.error("Error fetching workout session:", err);
       setError("Failed to fetch workout session");
@@ -100,9 +101,10 @@ export function useWorkoutSession(sessionId: string) {
           });
 
           toast.success("Set recorded successfully!");
-        } else {
-          toast.error(result.error || "Failed to update set");
+          return;
         }
+
+        toast.error(result.error || "Failed to update set");
       } catch (err) {
         console.error("Error updating set:", err);
         toast.error("Failed to update set");
@@ -151,9 +153,10 @@ export function useWorkoutSession(sessionId: string) {
 
         if (result.success) {
           toast.success("Exercise order updated!");
-        } else {
-          throw new Error(result.error || "Failed to reorder exercises");
+          return;
         }
+
+        throw new Error(result.error || "Failed to reorder exercises");
       } catch (err) {
         console.error("Error reordering exercises:", err);
         toast.error("Failed to reorder exercises");
@@ -196,10 +199,11 @@ export function useWorkoutSession(sessionId: string) {
 
           // Redirect to dashboard or workout summary
           router.push("/");
-        } else {
-          toast.error(result.error || "Failed to finish workout");
-          setIsFinishingWorkout(false); // Re-enable if there's an error
+          return;
         }
+
+        toast.error(result.error || "Failed to finish workout");
+        setIsFinishingWorkout(false); // Re-enable if there's an error
       } catch (err) {
         console.error("Error finishing workout:", err);
         toast.error("Failed to finish workout");

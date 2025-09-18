@@ -100,22 +100,6 @@ export const DashboardOverviewSchema = z.object({
   summaryStats: SummaryStatsSchema,
 });
 
-// API Response schemas
-export const ApiSuccessResponseSchema = <T extends z.ZodTypeAny>(
-  dataSchema: T,
-) =>
-  z.object({
-    success: z.literal(true),
-    data: dataSchema,
-    message: z.string().optional(),
-  });
-
-export const ApiErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string(),
-  details: z.string().optional(),
-});
-
 // Type exports
 export type WorkoutHistoryQuery = z.infer<typeof WorkoutHistoryQuerySchema>;
 export type ConsistencyQuery = z.infer<typeof ConsistencyQuerySchema>;
@@ -126,9 +110,3 @@ export type ConsistencyData = z.infer<typeof ConsistencyDataSchema>;
 export type TrendingMetric = z.infer<typeof TrendingMetricSchema>;
 export type SummaryStats = z.infer<typeof SummaryStatsSchema>;
 export type DashboardOverview = z.infer<typeof DashboardOverviewSchema>;
-export type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;

@@ -9,7 +9,7 @@ import {
 } from "@/shared/db/schema/app-schema";
 import { auth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 
 // Schema for creating a new workout session
@@ -40,6 +40,11 @@ const reorderExercisesSchema = z.object({
       }),
     )
     .min(1, "At least one exercise order is required"),
+});
+
+// Schema for repeating a workout session
+const repeatSessionSchema = z.object({
+  sessionId: z.string().min(1, "Session ID is required"),
 });
 
 export async function POST(request: NextRequest) {
@@ -103,7 +108,9 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Exercise order updated successfully",
       });
-    } else if (action === "create") {
+    }
+
+    if (action === "create") {
       // Validate the request body for creating a session
       const validationResult = createSessionSchema.safeParse(body);
 
@@ -192,7 +199,177 @@ export async function POST(request: NextRequest) {
           sessionId: result.id,
         },
       });
-    } else if (action === "updateSet") {
+    }
+
+    if (action === "repeat") {
+      // Validate the request body for repeating a session
+      const validationResult = repeatSessionSchema.safeParse(body);
+
+      if (!validationResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Validation failed",
+            details: validationResult.error.issues,
+          },
+          { status: 400 },
+        );
+      }
+
+      const { sessionId } = validationResult.data;
+
+      // Get the original session with all its data
+      const originalSession = await db
+        .select({
+          id: workoutSessions.id,
+          name: workoutSessions.name,
+          routineId: workoutSessions.routineId,
+          userId: workoutSessions.userId,
+        })
+        .from(workoutSessions)
+        .where(
+          and(
+            eq(workoutSessions.id, sessionId),
+            eq(workoutSessions.userId, session.user.id),
+          ),
+        )
+        .limit(1);
+
+      if (originalSession.length === 0) {
+        return NextResponse.json(
+          { success: false, error: "Original session not found" },
+          { status: 404 },
+        );
+      }
+
+      const originalSessionData = originalSession[0];
+
+      // Get all exercises and sets from the original session
+      const originalExercises = await db
+        .select({
+          exerciseId: sessionExercises.exerciseId,
+          name: sessionExercises.name,
+          orderIndex: sessionExercises.orderIndex,
+        })
+        .from(sessionExercises)
+        .where(eq(sessionExercises.sessionId, sessionId))
+        .orderBy(sessionExercises.orderIndex);
+
+      const originalSets = await db
+        .select({
+          sessionExerciseId: exerciseSets.sessionExerciseId,
+          setNumber: exerciseSets.setNumber,
+          weight: exerciseSets.weight,
+          reps: exerciseSets.reps,
+        })
+        .from(exerciseSets)
+        .innerJoin(
+          sessionExercises,
+          eq(exerciseSets.sessionExerciseId, sessionExercises.id),
+        )
+        .where(eq(sessionExercises.sessionId, sessionId))
+        .orderBy(exerciseSets.sessionExerciseId, exerciseSets.setNumber);
+
+      // Create a new workout session with the same data but new timestamp
+      const result = await db.transaction(async (tx) => {
+        // Create the new workout session
+        const [newWorkoutSession] = await tx
+          .insert(workoutSessions)
+          .values({
+            userId: session.user.id,
+            routineId: originalSessionData.routineId,
+            name: originalSessionData.name,
+            startedAt: new Date(),
+          })
+          .returning({ id: workoutSessions.id });
+
+        // Create session exercises with mapping from old to new IDs
+        const exerciseIdMapping = new Map();
+        for (const originalExercise of originalExercises) {
+          const [newSessionExercise] = await tx
+            .insert(sessionExercises)
+            .values({
+              sessionId: newWorkoutSession.id,
+              exerciseId: originalExercise.exerciseId,
+              name: originalExercise.name,
+              orderIndex: originalExercise.orderIndex,
+            })
+            .returning({ id: sessionExercises.id });
+
+          // Map old session exercise ID to new one
+          exerciseIdMapping.set(
+            originalExercise.exerciseId,
+            newSessionExercise.id,
+          );
+        }
+
+        // Group sets by session exercise ID
+        const setsByExercise = new Map();
+        for (const set of originalSets) {
+          if (!setsByExercise.has(set.sessionExerciseId)) {
+            setsByExercise.set(set.sessionExerciseId, []);
+          }
+          setsByExercise.get(set.sessionExerciseId).push(set);
+        }
+
+        // Create exercise sets for each new session exercise
+        for (const originalExercise of originalExercises) {
+          const newSessionExerciseId = exerciseIdMapping.get(
+            originalExercise.exerciseId,
+          );
+
+          // Find the original session exercise ID to get its sets
+          const originalSessionExercise = await tx
+            .select({ id: sessionExercises.id })
+            .from(sessionExercises)
+            .where(
+              and(
+                eq(sessionExercises.sessionId, sessionId),
+                originalExercise.exerciseId
+                  ? eq(sessionExercises.exerciseId, originalExercise.exerciseId)
+                  : sql`${sessionExercises.exerciseId} IS NULL`,
+                eq(sessionExercises.orderIndex, originalExercise.orderIndex),
+              ),
+            )
+            .limit(1);
+
+          if (originalSessionExercise.length > 0) {
+            const originalSessionExerciseId = originalSessionExercise[0].id;
+            const exerciseSets =
+              setsByExercise.get(originalSessionExerciseId) || [];
+
+            if (exerciseSets.length > 0) {
+              const setValues = exerciseSets.map(
+                (set: {
+                  sessionExerciseId: string;
+                  setNumber: number;
+                  weight: string | null;
+                  reps: number;
+                }) => ({
+                  sessionExerciseId: newSessionExerciseId,
+                  setNumber: set.setNumber,
+                  weight: set.weight,
+                  reps: set.reps,
+                }),
+              );
+
+              await tx.insert(exerciseSets).values(setValues);
+            }
+          }
+        }
+
+        return newWorkoutSession;
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          sessionId: result.id,
+        },
+      });
+    }
+
+    if (action === "updateSet") {
       // Validate the request body for updating a set
       const validationResult = updateSetSchema.safeParse(body);
 
@@ -253,16 +430,16 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Set updated successfully",
       });
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Invalid action. Supported actions: create, updateSet, reorderExercises",
-        },
-        { status: 400 },
-      );
     }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Invalid action. Supported actions: create, updateSet, reorderExercises, repeat",
+      },
+      { status: 400 },
+    );
   } catch (error) {
     console.error("Error in workout session API:", error);
 

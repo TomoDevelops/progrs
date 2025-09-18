@@ -3,13 +3,20 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/shared/components/ui/button";
-import { Settings, LogOut, Menu, X } from "lucide-react";
+import { Settings, LogOut, Menu, X, Play } from "lucide-react";
+import Link from "next/link";
 
 interface HeaderProps {
   onSignOut: () => void;
+  onStartWorkout?: () => void;
+  hasWorkoutsToday?: boolean;
 }
 
-export const Header = ({ onSignOut }: HeaderProps) => {
+export const Header = ({
+  onSignOut,
+  onStartWorkout,
+  hasWorkoutsToday = false,
+}: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -18,7 +25,7 @@ export const Header = ({ onSignOut }: HeaderProps) => {
 
   return (
     <>
-      <header className="">
+      <header className="sticky top-0 z-50 bg-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
@@ -32,12 +39,36 @@ export const Header = ({ onSignOut }: HeaderProps) => {
 
             {/* Desktop Navigation */}
             <div className="hidden items-center space-x-4 md:flex">
-              <Button className="h-10 rounded-full bg-white text-black hover:bg-gray-50 has-[>svg]:px-5">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+              {/* Hero Start Workout CTA */}
+              {hasWorkoutsToday && onStartWorkout && (
+                <Button
+                  onClick={onStartWorkout}
+                  variant="default"
+                  size="lg"
+                  radius="lg"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  Start workout
+                </Button>
+              )}
+              <Button
+                asChild
+                variant="outline"
+                size="default"
+                radius="full"
+                className="bg-white text-black hover:bg-gray-50"
+              >
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
               </Button>
               <Button
-                className="h-10 rounded-full bg-white text-black hover:bg-gray-50 has-[>svg]:px-5"
+                variant="outline"
+                size="default"
+                radius="full"
+                className="bg-white text-black hover:bg-gray-50"
                 onClick={onSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -48,7 +79,10 @@ export const Header = ({ onSignOut }: HeaderProps) => {
             {/* Mobile Hamburger Menu */}
             <div className="md:hidden">
               <Button
-                className="h-10 w-10 rounded-full bg-white p-0 text-black hover:bg-gray-50"
+                variant="outline"
+                size="icon"
+                radius="full"
+                className="bg-white text-black hover:bg-gray-50"
                 onClick={toggleMobileMenu}
               >
                 <Menu className="h-5 w-5" />
@@ -96,12 +130,38 @@ export const Header = ({ onSignOut }: HeaderProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.3 }}
               >
-                <Button className="h-12 w-full justify-start rounded-lg bg-gray-50 text-black hover:bg-gray-100">
+                {/* Mobile Hero Start Workout CTA */}
+                {hasWorkoutsToday && onStartWorkout && (
+                  <Button
+                    onClick={() => {
+                      if (onStartWorkout) {
+                        onStartWorkout();
+                        setIsMobileMenuOpen(false);
+                      }
+                    }}
+                    variant="default"
+                    size="lg"
+                    radius="lg"
+                    className="w-full justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Play className="mr-2 h-5 w-5" />
+                    Start workout
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="default"
+                  radius="lg"
+                  className="w-full justify-start bg-white text-black hover:bg-gray-50"
+                >
                   <Settings className="mr-3 h-5 w-5" />
                   Settings
                 </Button>
                 <Button
-                  className="h-12 w-full justify-start rounded-lg bg-gray-50 text-black hover:bg-gray-100"
+                  variant="outline"
+                  size="default"
+                  radius="lg"
+                  className="w-full justify-start bg-white text-black hover:bg-gray-50"
                   onClick={() => {
                     onSignOut();
                     setIsMobileMenuOpen(false);
@@ -115,6 +175,21 @@ export const Header = ({ onSignOut }: HeaderProps) => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Mobile FAB for Start Workout */}
+      {hasWorkoutsToday && onStartWorkout && (
+        <div className="fixed right-6 bottom-6 z-50 md:hidden">
+          <Button
+            onClick={onStartWorkout}
+            variant="default"
+            size="icon"
+            radius="full"
+            className="hover:shadow-3xl h-14 w-14 bg-gradient-to-r from-blue-600 to-purple-600 shadow-2xl transition-all duration-200 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Play className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
     </>
   );
 };

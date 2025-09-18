@@ -50,9 +50,10 @@ export function RTLScript() {
             // Run immediately
             if (document.readyState === 'loading') {
               document.addEventListener('DOMContentLoaded', setupRTL);
-            } else {
-              setupRTL();
+              return;
             }
+            
+            setupRTL();
           })();
         `,
       }}

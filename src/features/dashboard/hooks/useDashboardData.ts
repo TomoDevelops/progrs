@@ -75,8 +75,10 @@ export const useDashboardStats = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "stats"],
     queryFn: fetchDashboardStats,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes - critical content, fresher data
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
     enabled,
+    refetchOnWindowFocus: false, // Reduce unnecessary refetches
   });
 };
 
@@ -93,8 +95,12 @@ export const useTodayWorkouts = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "today-workouts"],
     queryFn: fetchTodayWorkouts,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute - most critical content
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
     enabled,
+    refetchOnWindowFocus: false,
+    // High priority for LCP optimization
+    networkMode: "online",
   });
 };
 
@@ -102,8 +108,10 @@ export const useWorkoutHistory = (limit?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "history", limit],
     queryFn: () => fetchWorkoutHistory(limit),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - below-the-fold, can be staler
+    gcTime: 15 * 60 * 1000, // 15 minutes cache
     enabled,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -111,17 +119,25 @@ export const useConsistencyData = (days?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["dashboard", "consistency", days],
     queryFn: () => fetchConsistencyData(days),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - least critical, can be stalest
+    gcTime: 20 * 60 * 1000, // 20 minutes cache
     enabled,
+    refetchOnWindowFocus: false,
   });
 };
 
-// Combined hook for all dashboard data
+// Combined hook for all dashboard data with optimized loading priority
 export const useDashboardData = (enabled: boolean = true) => {
-  const stats = useDashboardStats(enabled);
+  // Priority 1: Above-the-fold content (critical for LCP)
   const todayWorkouts = useTodayWorkouts(enabled);
-  const history = useWorkoutHistory(10, enabled); // Default to 10 recent workouts
-  const consistency = useConsistencyData(30, enabled); // Default to 30 days
+  const stats = useDashboardStats(enabled);
+
+  // Priority 2: Below-the-fold content (load after critical content)
+  const criticalContentLoaded = !todayWorkouts.isLoading && !stats.isLoading;
+  const enableBelowFold = enabled && (criticalContentLoaded || !enabled);
+
+  const history = useWorkoutHistory(10, enableBelowFold); // Default to 10 recent workouts
+  const consistency = useConsistencyData(30, enableBelowFold); // Default to 30 days
 
   return {
     stats,
@@ -140,5 +156,8 @@ export const useDashboardData = (enabled: boolean = true) => {
       consistency.isError,
     error:
       stats.error || todayWorkouts.error || history.error || consistency.error,
+    // Additional flags for granular loading states
+    isCriticalLoading: todayWorkouts.isLoading || stats.isLoading,
+    isBelowFoldLoading: history.isLoading || consistency.isLoading,
   };
 };

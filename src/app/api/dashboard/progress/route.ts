@@ -6,8 +6,8 @@ import { z } from "zod";
 
 const progressQuerySchema = z.object({
   exerciseId: z.string().optional(),
-  timeframe: z.enum(["4W", "8W", "3M", "1Y", "ALL"]).default("8W"),
-  metric: z.enum(["weight", "reps", "volume"]).default("weight"),
+  timeframe: z.enum(["2W", "8W", "6M", "1Y"]).default("8W"),
+  metric: z.enum(["weight", "reps", "volume"]).default("volume"),
 });
 
 export async function GET(request: NextRequest) {
@@ -60,12 +60,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const progressData = await progressRepository.getProgressData(
+    let progressData = await progressRepository.getProgressData(
       session.user.id,
       targetExerciseId,
       timeframe,
       metric,
     );
+
+    let actualTimeframe = timeframe;
+
+    // Auto-fallback from 8W to 2W if insufficient data (less than 3 data points)
+    if (timeframe === "8W" && progressData.length < 3) {
+      progressData = await progressRepository.getProgressData(
+        session.user.id,
+        targetExerciseId,
+        "2W",
+        metric,
+      );
+      actualTimeframe = "2W";
+    }
 
     const exerciseInfo =
       await progressRepository.getExerciseInfo(targetExerciseId);
@@ -77,7 +90,7 @@ export async function GET(request: NextRequest) {
         exerciseName: exerciseInfo?.name || "Unknown Exercise",
         data: progressData,
         metric,
-        timeframe,
+        timeframe: actualTimeframe,
       },
     });
   } catch (error) {

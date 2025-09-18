@@ -53,10 +53,13 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
         if (error) {
           setError(error.message || "Invalid verification code");
-        } else {
-          router.push("/");
+          return;
         }
-      } else if (isPasswordReset) {
+        router.push("/");
+        return;
+      }
+
+      if (isPasswordReset) {
         // Store OTP for password reset flow
         sessionStorage.setItem("reset-otp", otpCode);
         sessionStorage.setItem("reset-email", email);
@@ -84,10 +87,13 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
         if (error) {
           setError(error.message || "Failed to resend code");
-        } else {
-          startCountdown(60);
+          return;
         }
-      } else if (isPasswordReset) {
+        startCountdown(60);
+        return;
+      }
+
+      if (isPasswordReset) {
         const { error } = await authClient.forgetPassword({
           email,
           redirectTo:
@@ -97,9 +103,9 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
 
         if (error) {
           setError(error.message || "Failed to resend code");
-        } else {
-          startCountdown(60);
+          return;
         }
+        startCountdown(60);
       }
     } catch {
       setError("Failed to resend code");

@@ -155,9 +155,9 @@ export const usePersistedTimer = ({
     if (isCompleted) return;
     if (isRunning) {
       pause();
-    } else {
-      start();
+      return;
     }
+    start();
   }, [isCompleted, isRunning, pause, start]);
 
   // Reset timer
@@ -249,10 +249,10 @@ export const usePersistedTimer = ({
           // Timer was running when saved, continue it
           setIsRunning(true);
         }
-      } else {
-        // Timer has completed while away
-        handleComplete();
+        return;
       }
+      // Timer has completed while away
+      handleComplete();
     }
   }, [loadTimerState, calculateTimeLeft, handleComplete, isCompleted]);
 

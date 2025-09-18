@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/shared/lib/auth-client";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 export interface SignupFormData {
   username: string;
@@ -19,12 +20,14 @@ export interface UseSignupReturn {
   // Actions
   handleFormSubmit: (data: SignupFormData) => Promise<void>;
   handleGoogleSignUp: () => Promise<void>;
+  handleLineSignUp: () => Promise<void>;
 }
 
 export const useSignup = (): UseSignupReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { handleSocialAuth, error: authError } = useAuth();
 
   const handleFormSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
@@ -40,12 +43,13 @@ export const useSignup = (): UseSignupReturn => {
 
       if (error) {
         setError(error.message || "Failed to create account");
-      } else {
-        router.push(
-          "/verify-otp?type=email-verification&email=" +
-            encodeURIComponent(data.email),
-        );
+        return;
       }
+
+      router.push(
+        "/verify-otp?type=email-verification&email=" +
+          encodeURIComponent(data.email),
+      );
     } catch {
       setError("An unexpected error occurred");
     } finally {
@@ -55,19 +59,27 @@ export const useSignup = (): UseSignupReturn => {
 
   const handleGoogleSignUp = async () => {
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
+      setError("");
+      await handleSocialAuth("google", "signup");
     } catch {
-      setError("Failed to sign up with Google");
+      setError("Failed to initiate Google sign up");
+    }
+  };
+
+  const handleLineSignUp = async () => {
+    try {
+      setError("");
+      await handleSocialAuth("line", "signup");
+    } catch {
+      setError("Failed to initiate LINE sign up");
     }
   };
 
   return {
     isLoading,
-    error,
+    error: error || authError,
     handleFormSubmit,
     handleGoogleSignUp,
+    handleLineSignUp,
   };
 };

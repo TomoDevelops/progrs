@@ -29,7 +29,7 @@ const fetchActiveSession = async (): Promise<ActiveSession | null> => {
   return data.data;
 };
 
-export const useActiveSession = (): UseActiveSessionReturn => {
+export const useActiveSession = (enabled: boolean = true): UseActiveSessionReturn => {
   const {
     data: activeSession,
     isLoading,
@@ -40,6 +40,7 @@ export const useActiveSession = (): UseActiveSessionReturn => {
     staleTime: 30 * 1000, // 30 seconds
     refetchInterval: 60 * 1000, // Refetch every minute
     retry: 1,
+    enabled, // Only fetch when enabled
   });
 
   return {

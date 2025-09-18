@@ -52,12 +52,16 @@ export const useAuthenticatedSession = () => {
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
+    // Reduce initial loading time since server-side auth should handle most cases
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Handle navigation in useEffect to avoid setState during render
   React.useEffect(() => {
     if (query.isError || (query.isSuccess && !query.data)) {
-      router.push("/login");
+      // Use replace instead of push to prevent back navigation to protected route
+      router.replace("/login");
     }
   }, [query.isError, query.isSuccess, query.data, router]);
 

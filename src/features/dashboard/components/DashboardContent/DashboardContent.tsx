@@ -11,7 +11,7 @@ import { Repeat } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
-import { useActiveSession } from "@/features/dashboard/hooks/useActiveSession";
+
 import { useWeeklyStats } from "@/features/dashboard/hooks/useWeeklyStats";
 import { CreateWorkoutRoutineDialog } from "@/features/workout-routines/components/CreateWorkoutRoutineDialog";
 import Image from "next/image";
@@ -47,16 +47,16 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
-  const {} = useActiveSession();
+  
+  // Only enable data fetching when user is authenticated and not loading
+  const isDataEnabled = !!user && !authLoading;
+  
   const router = useRouter();
   const {
     currentWeek,
     lastWeek,
     isLoading: weeklyStatsLoading,
-  } = useWeeklyStats();
-
-  // Only enable data fetching when user is authenticated and not loading
-  const isDataEnabled = !!user && !authLoading;
+  } = useWeeklyStats(isDataEnabled);
 
   const { stats, todayWorkouts, history, consistency, isError, error } =
     useDashboardData(isDataEnabled);

@@ -1,12 +1,12 @@
-import React from 'react';
-import { cn } from '@/shared/lib/utils';
+import React from "react";
+import { cn } from "@/shared/lib/utils";
 
 interface LoginWithGoogleProps {
   onClick: () => void;
-  theme?: 'light' | 'dark' | 'neutral';
-  size?: 'small' | 'medium' | 'large';
-  shape?: 'rectangular' | 'pill';
-  text?: 'signin' | 'signup' | 'continue';
+  theme?: "light" | "dark" | "neutral";
+  size?: "small" | "medium" | "large";
+  shape?: "rectangular" | "pill";
+  text?: "signin" | "signup" | "continue";
   disabled?: boolean;
   loading?: boolean;
   className?: string;
@@ -41,7 +41,7 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 
 const LoadingSpinner = ({ className }: { className?: string }) => (
   <svg
-    className={cn('animate-spin', className)}
+    className={cn("animate-spin", className)}
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
@@ -66,73 +66,73 @@ const LoadingSpinner = ({ className }: { className?: string }) => (
 
 export const LoginWithGoogle: React.FC<LoginWithGoogleProps> = ({
   onClick,
-  theme = 'light',
-  size = 'medium',
-  shape = 'rectangular',
-  text = 'signin',
+  theme = "light",
+  size = "medium",
+  shape = "rectangular",
+  text = "signin",
   disabled = false,
   loading = false,
   className,
 }) => {
   const getButtonText = () => {
     switch (text) {
-      case 'signup':
-        return 'Sign up with Google';
-      case 'continue':
-        return 'Continue with Google';
+      case "signup":
+        return "Sign up with Google";
+      case "continue":
+        return "Continue with Google";
       default:
-        return 'Sign in with Google';
+        return "Sign in with Google";
     }
   };
 
   const getThemeStyles = () => {
     switch (theme) {
-      case 'dark':
+      case "dark":
         return {
-          background: '#131314',
-          border: '1px solid #8E918F',
-          color: '#E3E3E3',
-          hoverBackground: '#1a1a1b',
+          background: "#131314",
+          border: "1px solid #8E918F",
+          color: "#E3E3E3",
+          hoverBackground: "#1a1a1b",
         };
-      case 'neutral':
+      case "neutral":
         return {
-          background: '#F2F2F2',
-          border: 'none',
-          color: '#1F1F1F',
-          hoverBackground: '#e8e8e8',
+          background: "#F2F2F2",
+          border: "none",
+          color: "#1F1F1F",
+          hoverBackground: "#e8e8e8",
         };
       default: // light
         return {
-          background: '#FFFFFF',
-          border: '1px solid #747775',
-          color: '#1F1F1F',
-          hoverBackground: '#f8f9fa',
+          background: "#FFFFFF",
+          border: "1px solid #747775",
+          color: "#1F1F1F",
+          hoverBackground: "#f8f9fa",
         };
     }
   };
 
   const getSizeStyles = () => {
     switch (size) {
-      case 'small':
+      case "small":
         return {
-          height: '32px',
-          padding: '0 12px',
-          fontSize: '12px',
-          gap: '8px',
+          height: "32px",
+          padding: "0 12px",
+          fontSize: "12px",
+          gap: "8px",
         };
-      case 'large':
+      case "large":
         return {
-          height: '48px',
-          padding: '0 20px',
-          fontSize: '16px',
-          gap: '12px',
+          height: "48px",
+          padding: "0 20px",
+          fontSize: "16px",
+          gap: "12px",
         };
       default: // medium
         return {
-          height: '40px',
-          padding: '0 16px',
-          fontSize: '14px',
-          gap: '10px',
+          height: "40px",
+          padding: "0 16px",
+          fontSize: "14px",
+          gap: "10px",
         };
     }
   };
@@ -155,20 +155,21 @@ export const LoginWithGoogle: React.FC<LoginWithGoogleProps> = ({
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center font-medium transition-colors duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        shape === 'pill' ? 'rounded-full' : 'rounded-md',
-        'hover:shadow-sm active:scale-[0.98]',
-        className
+        "inline-flex items-center justify-center font-medium transition-colors duration-200",
+        "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        shape === "pill" ? "rounded-full" : "rounded-md",
+        "hover:shadow-sm active:scale-[0.98]",
+        className,
       )}
       style={{
         ...buttonStyles,
-        fontFamily: 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily:
+          'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         fontWeight: 500,
-        lineHeight: '20px',
-        minWidth: 'fit-content',
-        whiteSpace: 'nowrap',
+        lineHeight: "20px",
+        minWidth: "fit-content",
+        whiteSpace: "nowrap",
       }}
       onMouseEnter={(e) => {
         if (!disabled && !loading) {

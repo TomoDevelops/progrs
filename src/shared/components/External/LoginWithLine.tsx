@@ -15,7 +15,7 @@ interface LoginWithLineProps {
 /**
  * LINE Login Button component that adheres to the official LINE Developers Guidelines
  * Reference: https://terms2.line.me/LINE_Developers_Guidelines_for_Login_Button
- * 
+ *
  * Key compliance features:
  * - Uses official LINE icon from /public/line.png
  * - Maintains proper aspect ratio and padding as specified
@@ -56,7 +56,7 @@ export const LoginWithLine: React.FC<LoginWithLineProps> = ({
     // Isolation zone compliance - margin ensures proper spacing
     "mx-2 my-1",
     sizeClasses[size],
-    className
+    className,
   );
 
   const iconSize = iconSizes[size];
@@ -79,12 +79,10 @@ export const LoginWithLine: React.FC<LoginWithLineProps> = ({
           className="shrink-0"
           priority
         />
-        
+
         {/* Login Button Text - only shown in default variant */}
         {variant === "default" && (
-          <span className="whitespace-nowrap">
-            Sign in with LINE
-          </span>
+          <span className="whitespace-nowrap">Sign in with LINE</span>
         )}
       </button>
     </div>
@@ -95,7 +93,9 @@ export const LoginWithLine: React.FC<LoginWithLineProps> = ({
  * Alternative compact version for use in forms or tight spaces
  * Maintains LINE guidelines while providing a more compact option
  */
-export const LoginWithLineCompact: React.FC<Omit<LoginWithLineProps, 'variant'>> = (props) => {
+export const LoginWithLineCompact: React.FC<
+  Omit<LoginWithLineProps, "variant">
+> = (props) => {
   return <LoginWithLine {...props} variant="icon-only" size="sm" />;
 };
 
@@ -103,7 +103,9 @@ export const LoginWithLineCompact: React.FC<Omit<LoginWithLineProps, 'variant'>>
  * Large version for prominent placement (e.g., main login page)
  * Maintains LINE guidelines with enhanced visibility
  */
-export const LoginWithLineLarge: React.FC<Omit<LoginWithLineProps, 'variant' | 'size'>> = (props) => {
+export const LoginWithLineLarge: React.FC<
+  Omit<LoginWithLineProps, "variant" | "size">
+> = (props) => {
   return <LoginWithLine {...props} variant="default" size="lg" />;
 };
 

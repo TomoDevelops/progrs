@@ -13,7 +13,10 @@ export interface UseSocialAuthReturn {
   error: string;
 
   // Actions
-  handleSocialAuth: (provider: SocialProvider, context: AuthContext) => Promise<void>;
+  handleSocialAuth: (
+    provider: SocialProvider,
+    context: AuthContext,
+  ) => Promise<void>;
   handleSocialAuthWithConsent: (provider: SocialProvider) => Promise<void>;
 }
 
@@ -27,7 +30,10 @@ export const useAuth = (): UseSocialAuthReturn => {
    * @param provider - The social provider (google or line)
    * @param context - Whether this is for login or signup flow
    */
-  const handleSocialAuth = async (provider: SocialProvider, context: AuthContext) => {
+  const handleSocialAuth = async (
+    provider: SocialProvider,
+    context: AuthContext,
+  ) => {
     try {
       setError("");
       // Redirect to email consent page with provider and context info

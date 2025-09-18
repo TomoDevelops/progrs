@@ -50,7 +50,7 @@ export function ExerciseSelector({
         setExercises(data.data);
         return;
       }
-      
+
       setError(data.error || "Failed to fetch exercises");
     } catch (err) {
       setError("Failed to fetch exercises");

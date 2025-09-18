@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/shared/config/auth/auth";
 import { dashboardService } from "@/app/api/dashboard/services/dashboard.service";
 import { TrendingMetricsQuerySchema } from "@/app/api/dashboard/schemas/dashboard.schemas";
-import type {
-  ApiSuccessResponse,
-  ApiErrorResponse,
-} from "@/app/api/dashboard/schemas/dashboard.schemas";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {

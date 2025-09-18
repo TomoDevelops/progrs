@@ -46,22 +46,36 @@ export function ThisWeekCard({ currentWeek, lastWeek }: ThisWeekCardProps) {
 
   const getDeltaDisplay = (delta: number | null) => {
     if (delta === null) return null;
-    
+
     const isPositive = delta > 0;
     const isNeutral = delta === 0;
-    
+
     return {
       value: Math.abs(delta),
       isPositive,
       isNeutral,
       icon: isNeutral ? Minus : isPositive ? TrendingUp : TrendingDown,
-      color: isNeutral ? "text-gray-500" : isPositive ? "text-green-600" : "text-red-600",
-      bgColor: isNeutral ? "bg-gray-100" : isPositive ? "bg-green-100" : "bg-red-100",
+      color: isNeutral
+        ? "text-gray-500"
+        : isPositive
+          ? "text-green-600"
+          : "text-red-600",
+      bgColor: isNeutral
+        ? "bg-gray-100"
+        : isPositive
+          ? "bg-green-100"
+          : "bg-red-100",
     };
   };
 
-  const workoutsDelta = calculateDelta(currentWeek.workouts, lastWeek?.workouts);
-  const durationDelta = calculateDelta(currentWeek.duration, lastWeek?.duration);
+  const workoutsDelta = calculateDelta(
+    currentWeek.workouts,
+    lastWeek?.workouts,
+  );
+  const durationDelta = calculateDelta(
+    currentWeek.duration,
+    lastWeek?.duration,
+  );
   const volumeDelta = calculateDelta(currentWeek.volume, lastWeek?.volume);
 
   const workoutsDeltaDisplay = getDeltaDisplay(workoutsDelta);
@@ -84,14 +98,14 @@ export function ThisWeekCard({ currentWeek, lastWeek }: ThisWeekCardProps) {
               <div className="text-2xl font-bold text-blue-600">
                 {currentWeek.workouts}
               </div>
-              <p className="text-sm text-muted-foreground">Workouts</p>
+              <p className="text-muted-foreground text-sm">Workouts</p>
             </div>
             {workoutsDeltaDisplay && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`${workoutsDeltaDisplay.bgColor} ${workoutsDeltaDisplay.color} border-0`}
               >
-                <workoutsDeltaDisplay.icon className="h-3 w-3 mr-1" />
+                <workoutsDeltaDisplay.icon className="mr-1 h-3 w-3" />
                 {workoutsDeltaDisplay.value}%
               </Badge>
             )}
@@ -103,14 +117,14 @@ export function ThisWeekCard({ currentWeek, lastWeek }: ThisWeekCardProps) {
               <div className="text-2xl font-bold text-green-600">
                 {formatDuration(currentWeek.duration)}
               </div>
-              <p className="text-sm text-muted-foreground">Duration</p>
+              <p className="text-muted-foreground text-sm">Duration</p>
             </div>
             {durationDeltaDisplay && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`${durationDeltaDisplay.bgColor} ${durationDeltaDisplay.color} border-0`}
               >
-                <durationDeltaDisplay.icon className="h-3 w-3 mr-1" />
+                <durationDeltaDisplay.icon className="mr-1 h-3 w-3" />
                 {durationDeltaDisplay.value}%
               </Badge>
             )}
@@ -121,16 +135,18 @@ export function ThisWeekCard({ currentWeek, lastWeek }: ThisWeekCardProps) {
             <div>
               <div className="text-2xl font-bold text-purple-600">
                 {formatVolume(currentWeek.volume)}
-                <span className="text-sm font-normal text-muted-foreground ml-1">kg</span>
+                <span className="text-muted-foreground ml-1 text-sm font-normal">
+                  kg
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground">Volume lifted</p>
+              <p className="text-muted-foreground text-sm">Volume lifted</p>
             </div>
             {volumeDeltaDisplay && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`${volumeDeltaDisplay.bgColor} ${volumeDeltaDisplay.color} border-0`}
               >
-                <volumeDeltaDisplay.icon className="h-3 w-3 mr-1" />
+                <volumeDeltaDisplay.icon className="mr-1 h-3 w-3" />
                 {volumeDeltaDisplay.value}%
               </Badge>
             )}
@@ -139,8 +155,8 @@ export function ThisWeekCard({ currentWeek, lastWeek }: ThisWeekCardProps) {
 
         {/* Last week comparison note */}
         {lastWeek && (
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-xs text-muted-foreground text-center">
+          <div className="mt-6 border-t border-gray-100 pt-4">
+            <p className="text-muted-foreground text-center text-xs">
               Compared to last week
             </p>
           </div>

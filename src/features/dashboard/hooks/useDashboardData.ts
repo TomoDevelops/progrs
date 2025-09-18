@@ -100,7 +100,7 @@ export const useTodayWorkouts = (enabled: boolean = true) => {
     enabled,
     refetchOnWindowFocus: false,
     // High priority for LCP optimization
-    networkMode: 'online',
+    networkMode: "online",
   });
 };
 
@@ -131,11 +131,11 @@ export const useDashboardData = (enabled: boolean = true) => {
   // Priority 1: Above-the-fold content (critical for LCP)
   const todayWorkouts = useTodayWorkouts(enabled);
   const stats = useDashboardStats(enabled);
-  
+
   // Priority 2: Below-the-fold content (load after critical content)
   const criticalContentLoaded = !todayWorkouts.isLoading && !stats.isLoading;
   const enableBelowFold = enabled && (criticalContentLoaded || !enabled);
-  
+
   const history = useWorkoutHistory(10, enableBelowFold); // Default to 10 recent workouts
   const consistency = useConsistencyData(30, enableBelowFold); // Default to 30 days
 

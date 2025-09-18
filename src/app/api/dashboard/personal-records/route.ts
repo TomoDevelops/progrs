@@ -5,8 +5,14 @@ import { dashboardRepository } from "@/app/api/dashboard/repository/dashboard.re
 import { z } from "zod";
 
 const personalRecordsQuerySchema = z.object({
-  limit: z.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  days: z.string().optional().transform((val) => val ? parseInt(val, 10) : 30),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
+  days: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 30)),
 });
 
 export async function GET(request: NextRequest) {
@@ -15,10 +21,7 @@ export async function GET(request: NextRequest) {
       headers: await headers(),
     });
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -30,7 +33,7 @@ export async function GET(request: NextRequest) {
     const personalRecords = await dashboardRepository.getRecentPersonalRecords(
       session.user.id,
       limit,
-      days
+      days,
     );
 
     return NextResponse.json({
@@ -41,7 +44,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching personal records:", error);
     return NextResponse.json(
       { error: "Failed to fetch personal records" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

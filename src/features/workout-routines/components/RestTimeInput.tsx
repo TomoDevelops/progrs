@@ -26,7 +26,7 @@ export function RestTimeInput({
       setSeconds(secs > 0 ? secs.toString() : "");
       return;
     }
-    
+
     // Set default to 1 minute when no value
     setMinutes("1");
     setSeconds("");

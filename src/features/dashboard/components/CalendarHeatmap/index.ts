@@ -1,1 +1,1 @@
-export { CalendarHeatmap } from './CalendarHeatmap';
+export { CalendarHeatmap } from "./CalendarHeatmap";

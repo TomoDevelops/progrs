@@ -3,20 +3,12 @@ import { auth } from "@/shared/config/auth/auth";
 import { db } from "@/shared/db/database";
 import { workoutReminders } from "@/shared/db/schema/app-schema";
 import { eq, and } from "drizzle-orm";
-import { createWorkoutReminderSchema, updateWorkoutReminderSchema } from "@/features/settings/types";
-import type { WorkoutReminder, CreateWorkoutReminder, UpdateWorkoutReminder } from "@/features/settings/types";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import {
+  createWorkoutReminderSchema,
+  updateWorkoutReminderSchema,
+} from "@/features/settings/types";
+import type { WorkoutReminder } from "@/features/settings/types";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,7 +97,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in /api/me/reminders POST:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,
@@ -159,8 +151,8 @@ export async function PUT(request: NextRequest) {
       .where(
         and(
           eq(workoutReminders.id, validatedData.id),
-          eq(workoutReminders.userId, session.user.id)
-        )
+          eq(workoutReminders.userId, session.user.id),
+        ),
       )
       .returning();
 
@@ -169,7 +161,8 @@ export async function PUT(request: NextRequest) {
         {
           success: false,
           error: "Not Found",
-          details: "Reminder not found or you don't have permission to update it",
+          details:
+            "Reminder not found or you don't have permission to update it",
         } satisfies ApiErrorResponse,
         { status: 404 },
       );
@@ -185,7 +178,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error in /api/me/reminders PUT:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,

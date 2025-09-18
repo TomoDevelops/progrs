@@ -82,7 +82,7 @@ function Carousel({
         scrollPrev();
         return;
       }
-      
+
       if (event.key === "ArrowRight") {
         event.preventDefault();
         scrollNext();

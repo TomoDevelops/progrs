@@ -4,19 +4,8 @@ import { db } from "@/shared/db/database";
 import { dataExports } from "@/shared/db/schema/app-schema";
 import { eq } from "drizzle-orm";
 import { dataExportSchema } from "@/features/settings/types";
-import type { DataExport, DataExportJob } from "@/features/settings/types";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import type { DataExportJob } from "@/features/settings/types";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const response: ApiSuccessResponse<DataExportJob[]> = {
       success: true,
-      data: exportJobs.map(job => ({
+      data: exportJobs.map((job) => ({
         id: job.id,
         format: job.format as "csv" | "json",
         status: job.status as "pending" | "processing" | "complete" | "error",
@@ -98,17 +87,20 @@ export async function POST(request: NextRequest) {
     const [activeExport] = await db
       .select()
       .from(dataExports)
-      .where(
-        eq(dataExports.userId, session.user.id)
-      )
+      .where(eq(dataExports.userId, session.user.id))
       .limit(1);
 
-    if (activeExport && (activeExport.status === "pending" || activeExport.status === "processing")) {
+    if (
+      activeExport &&
+      (activeExport.status === "pending" ||
+        activeExport.status === "processing")
+    ) {
       return NextResponse.json(
         {
           success: false,
           error: "Conflict",
-          details: "You already have an active export job. Please wait for it to complete.",
+          details:
+            "You already have an active export job. Please wait for it to complete.",
         } satisfies ApiErrorResponse,
         { status: 409 },
       );
@@ -131,7 +123,11 @@ export async function POST(request: NextRequest) {
     const responseData: DataExportJob = {
       id: newExportJob.id,
       format: newExportJob.format as "csv" | "json",
-      status: newExportJob.status as "pending" | "processing" | "complete" | "error",
+      status: newExportJob.status as
+        | "pending"
+        | "processing"
+        | "complete"
+        | "error",
       downloadUrl: newExportJob.downloadUrl || undefined,
       error: newExportJob.error || undefined,
       createdAt: newExportJob.createdAt.toISOString(),
@@ -141,14 +137,15 @@ export async function POST(request: NextRequest) {
     const response: ApiSuccessResponse<DataExportJob> = {
       success: true,
       data: responseData,
-      message: "Export job created successfully. You will be notified when it's ready.",
+      message:
+        "Export job created successfully. You will be notified when it's ready.",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error("Error in /api/me/export POST:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,

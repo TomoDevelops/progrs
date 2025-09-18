@@ -4,7 +4,9 @@ interface WorkoutHistorySkeletonProps {
   count?: number;
 }
 
-export const WorkoutHistorySkeleton = ({ count = 5 }: WorkoutHistorySkeletonProps) => {
+export const WorkoutHistorySkeleton = ({
+  count = 5,
+}: WorkoutHistorySkeletonProps) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, index) => (
@@ -17,12 +19,12 @@ export const WorkoutHistorySkeleton = ({ count = 5 }: WorkoutHistorySkeletonProp
               <div className="flex items-center gap-3">
                 <Skeleton className="h-10 w-10 rounded-full" />
                 <div>
-                  <Skeleton className="h-5 w-32 mb-1" />
+                  <Skeleton className="mb-1 h-5 w-32" />
                   <Skeleton className="h-4 w-24" />
                 </div>
               </div>
               <div className="text-right">
-                <Skeleton className="h-4 w-16 mb-1" />
+                <Skeleton className="mb-1 h-4 w-16" />
                 <Skeleton className="h-3 w-12" />
               </div>
             </div>

@@ -58,7 +58,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
         router.push("/");
         return;
       }
-      
+
       if (isPasswordReset) {
         // Store OTP for password reset flow
         sessionStorage.setItem("reset-otp", otpCode);
@@ -92,7 +92,7 @@ export const useOtpVerification = (): UseOtpVerificationReturn => {
         startCountdown(60);
         return;
       }
-      
+
       if (isPasswordReset) {
         const { error } = await authClient.forgetPassword({
           email,

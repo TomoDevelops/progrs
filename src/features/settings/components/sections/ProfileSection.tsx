@@ -2,10 +2,19 @@
 
 import React, { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import { Camera, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +31,10 @@ interface ProfileSectionProps {
   ref?: React.Ref<HTMLElement>;
 }
 
-export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>(
-  ({ id }, ref) => {
+export const ProfileSection = React.forwardRef<
+  HTMLElement,
+  ProfileSectionProps
+>(({ id }, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
     name: "",
@@ -77,7 +88,9 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
       toast.success("Profile updated successfully");
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to update profile");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile",
+      );
     },
   });
 
@@ -127,7 +140,7 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
       <Card className="rounded-2xl shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold">Profile</CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Personal information and avatar
           </p>
         </CardHeader>
@@ -136,25 +149,29 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
           <div className="flex items-center gap-6">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={profile?.image || undefined} alt={profile?.username || "User"} />
+                <AvatarImage
+                  src={profile?.image || undefined}
+                  alt={profile?.username || "User"}
+                />
                 <AvatarFallback className="text-lg">
-                  {profile?.name?.[0] || "U"}{profile?.username?.[0] || ""}
+                  {profile?.name?.[0] || "U"}
+                  {profile?.username?.[0] || ""}
                 </AvatarFallback>
               </Avatar>
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                className="absolute -right-2 -bottom-2 h-8 w-8 rounded-full p-0"
                 onClick={handleAvatarUpload}
               >
                 <Camera className="h-4 w-4" />
               </Button>
             </div>
             <div>
-              <h3 className="text-lg font-medium">
-                {profile?.name || "User"}
-              </h3>
-              <p className="text-sm text-gray-600">@{profile?.username || "username"}</p>
+              <h3 className="text-lg font-medium">{profile?.name || "User"}</h3>
+              <p className="text-sm text-gray-600">
+                @{profile?.username || "username"}
+              </p>
               <Button
                 variant="outline"
                 size="sm"
@@ -174,7 +191,9 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 disabled={!isEditing}
               />
             </div>
@@ -183,7 +202,9 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
               <Input
                 id="username"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
                 disabled={!isEditing}
               />
             </div>
@@ -193,7 +214,9 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 disabled={!isEditing}
               />
             </div>
@@ -224,9 +247,7 @@ export const ProfileSection = React.forwardRef<HTMLElement, ProfileSectionProps>
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)}>
-                Edit Profile
-              </Button>
+              <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
             )}
           </div>
         </CardContent>

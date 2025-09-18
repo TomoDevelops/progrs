@@ -145,7 +145,10 @@ export const DashboardSkeleton = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="flex items-center gap-4 rounded-lg border p-4">
+                <div
+                  key={index}
+                  className="flex items-center gap-4 rounded-lg border p-4"
+                >
                   <Skeleton className="h-12 w-12 rounded-lg" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-5 w-32" />

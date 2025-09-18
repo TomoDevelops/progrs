@@ -4,19 +4,7 @@ import { db } from "@/shared/db/database";
 import { user } from "@/shared/db/schema/auth-schema";
 import { eq } from "drizzle-orm";
 import { profileUpdateSchema } from "@/features/settings/types";
-import type { ProfileUpdate } from "@/features/settings/types";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -164,7 +152,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error in /api/me/profile PUT:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,

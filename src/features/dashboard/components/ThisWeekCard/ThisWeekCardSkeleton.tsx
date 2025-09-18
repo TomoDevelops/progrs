@@ -21,7 +21,7 @@ export const ThisWeekCardSkeleton = () => {
           {/* Workouts skeleton */}
           <div className="flex items-center justify-between">
             <div>
-              <Skeleton className="h-8 w-12 mb-1" />
+              <Skeleton className="mb-1 h-8 w-12" />
               <Skeleton className="h-4 w-16" />
             </div>
             <Skeleton className="h-6 w-12 rounded-full" />
@@ -30,7 +30,7 @@ export const ThisWeekCardSkeleton = () => {
           {/* Duration skeleton */}
           <div className="flex items-center justify-between">
             <div>
-              <Skeleton className="h-8 w-16 mb-1" />
+              <Skeleton className="mb-1 h-8 w-16" />
               <Skeleton className="h-4 w-14" />
             </div>
             <Skeleton className="h-6 w-12 rounded-full" />
@@ -39,7 +39,7 @@ export const ThisWeekCardSkeleton = () => {
           {/* Volume skeleton */}
           <div className="flex items-center justify-between">
             <div>
-              <Skeleton className="h-8 w-20 mb-1" />
+              <Skeleton className="mb-1 h-8 w-20" />
               <Skeleton className="h-4 w-20" />
             </div>
             <Skeleton className="h-6 w-12 rounded-full" />
@@ -47,8 +47,8 @@ export const ThisWeekCardSkeleton = () => {
         </div>
 
         {/* Comparison note skeleton */}
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <Skeleton className="h-3 w-32 mx-auto" />
+        <div className="mt-6 border-t border-gray-100 pt-4">
+          <Skeleton className="mx-auto h-3 w-32" />
         </div>
       </CardContent>
     </Card>

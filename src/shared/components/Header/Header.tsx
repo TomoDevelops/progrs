@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/shared/components/ui/button";
 import { Settings, LogOut, Menu, X, Play } from "lucide-react";
+import Link from "next/link";
 
 interface HeaderProps {
   onSignOut: () => void;
@@ -52,13 +53,16 @@ export const Header = ({
                 </Button>
               )}
               <Button
+                asChild
                 variant="outline"
                 size="default"
                 radius="full"
                 className="bg-white text-black hover:bg-gray-50"
               >
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
               </Button>
               <Button
                 variant="outline"

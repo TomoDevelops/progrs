@@ -67,7 +67,7 @@ export const ExerciseSelector = ({
             setIsModalOpen(true);
             return;
           }
-          
+
           onExerciseChange(value);
         }}
       >

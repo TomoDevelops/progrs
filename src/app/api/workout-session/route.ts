@@ -317,42 +317,45 @@ export async function POST(request: NextRequest) {
           const newSessionExerciseId = exerciseIdMapping.get(
             originalExercise.exerciseId,
           );
-          
+
           // Find the original session exercise ID to get its sets
-           const originalSessionExercise = await tx
-             .select({ id: sessionExercises.id })
-             .from(sessionExercises)
-             .where(
-               and(
-                 eq(sessionExercises.sessionId, sessionId),
-                 originalExercise.exerciseId
-                   ? eq(sessionExercises.exerciseId, originalExercise.exerciseId)
-                   : sql`${sessionExercises.exerciseId} IS NULL`,
-                 eq(sessionExercises.orderIndex, originalExercise.orderIndex),
-               ),
-             )
-             .limit(1);
+          const originalSessionExercise = await tx
+            .select({ id: sessionExercises.id })
+            .from(sessionExercises)
+            .where(
+              and(
+                eq(sessionExercises.sessionId, sessionId),
+                originalExercise.exerciseId
+                  ? eq(sessionExercises.exerciseId, originalExercise.exerciseId)
+                  : sql`${sessionExercises.exerciseId} IS NULL`,
+                eq(sessionExercises.orderIndex, originalExercise.orderIndex),
+              ),
+            )
+            .limit(1);
 
-           if (originalSessionExercise.length > 0) {
-             const originalSessionExerciseId = originalSessionExercise[0].id;
-             const exerciseSets = setsByExercise.get(originalSessionExerciseId) || [];
+          if (originalSessionExercise.length > 0) {
+            const originalSessionExerciseId = originalSessionExercise[0].id;
+            const exerciseSets =
+              setsByExercise.get(originalSessionExerciseId) || [];
 
-             if (exerciseSets.length > 0) {
-               const setValues = exerciseSets.map((set: {
-                 sessionExerciseId: string;
-                 setNumber: number;
-                 weight: string | null;
-                 reps: number;
-               }) => ({
-                 sessionExerciseId: newSessionExerciseId,
-                 setNumber: set.setNumber,
-                 weight: set.weight,
-                 reps: set.reps,
-               }));
+            if (exerciseSets.length > 0) {
+              const setValues = exerciseSets.map(
+                (set: {
+                  sessionExerciseId: string;
+                  setNumber: number;
+                  weight: string | null;
+                  reps: number;
+                }) => ({
+                  sessionExerciseId: newSessionExerciseId,
+                  setNumber: set.setNumber,
+                  weight: set.weight,
+                  reps: set.reps,
+                }),
+              );
 
-               await tx.insert(exerciseSets).values(setValues);
-             }
-           }
+              await tx.insert(exerciseSets).values(setValues);
+            }
+          }
         }
 
         return newWorkoutSession;

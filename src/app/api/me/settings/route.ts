@@ -3,20 +3,12 @@ import { auth } from "@/shared/config/auth/auth";
 import { db } from "@/shared/db/database";
 import { userSettings } from "@/shared/db/schema/app-schema";
 import { eq } from "drizzle-orm";
-import { userSettingsSchema, userSettingsUpdateSchema } from "@/features/settings/types";
-import type { UserSettings, UserSettingsUpdate } from "@/features/settings/types";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import {
+  userSettingsSchema,
+  userSettingsUpdateSchema,
+} from "@/features/settings/types";
+import type { UserSettings } from "@/features/settings/types";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,16 +37,22 @@ export async function GET(request: NextRequest) {
 
     // If no settings exist, return defaults
     const defaultSettings = userSettingsSchema.parse({});
-    const userSettingsData = settings ? {
-      ...defaultSettings,
-      ...settings,
-      barWeight: parseFloat(settings.barWeight as string),
-      roundingIncrement: parseFloat(settings.roundingIncrement as string),
-      autoProgressionStep: parseFloat(settings.autoProgressionStep as string),
-      quickStartDefaultSplit: settings.quickStartDefaultSplit || undefined,
-      language: settings.language || undefined,
-      platePairs: settings.platePairs ? JSON.parse(settings.platePairs as string) : defaultSettings.platePairs,
-    } : defaultSettings;
+    const userSettingsData = settings
+      ? {
+          ...defaultSettings,
+          ...settings,
+          barWeight: parseFloat(settings.barWeight as string),
+          roundingIncrement: parseFloat(settings.roundingIncrement as string),
+          autoProgressionStep: parseFloat(
+            settings.autoProgressionStep as string,
+          ),
+          quickStartDefaultSplit: settings.quickStartDefaultSplit || undefined,
+          language: settings.language || undefined,
+          platePairs: settings.platePairs
+            ? JSON.parse(settings.platePairs as string)
+            : defaultSettings.platePairs,
+        }
+      : defaultSettings;
 
     const response: ApiSuccessResponse<UserSettings> = {
       success: true,
@@ -105,7 +103,9 @@ export async function PUT(request: NextRequest) {
       barWeight: validatedData.barWeight?.toString(),
       roundingIncrement: validatedData.roundingIncrement?.toString(),
       autoProgressionStep: validatedData.autoProgressionStep?.toString(),
-      platePairs: validatedData.platePairs ? JSON.stringify(validatedData.platePairs) : undefined,
+      platePairs: validatedData.platePairs
+        ? JSON.stringify(validatedData.platePairs)
+        : undefined,
       updatedAt: new Date(),
     };
 
@@ -139,11 +139,18 @@ export async function PUT(request: NextRequest) {
     const responseData = {
       ...updatedSettings,
       barWeight: parseFloat(updatedSettings.barWeight as string),
-      roundingIncrement: parseFloat(updatedSettings.roundingIncrement as string),
-      autoProgressionStep: parseFloat(updatedSettings.autoProgressionStep as string),
-      quickStartDefaultSplit: updatedSettings.quickStartDefaultSplit || undefined,
+      roundingIncrement: parseFloat(
+        updatedSettings.roundingIncrement as string,
+      ),
+      autoProgressionStep: parseFloat(
+        updatedSettings.autoProgressionStep as string,
+      ),
+      quickStartDefaultSplit:
+        updatedSettings.quickStartDefaultSplit || undefined,
       language: updatedSettings.language || undefined,
-      platePairs: updatedSettings.platePairs ? JSON.parse(updatedSettings.platePairs as string) : null,
+      platePairs: updatedSettings.platePairs
+        ? JSON.parse(updatedSettings.platePairs as string)
+        : null,
     };
 
     const response: ApiSuccessResponse<UserSettings> = {
@@ -156,7 +163,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error in /api/me/settings PUT:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,

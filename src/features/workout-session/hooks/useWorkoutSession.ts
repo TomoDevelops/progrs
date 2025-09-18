@@ -41,7 +41,7 @@ export function useWorkoutSession(sessionId: string) {
         setSession(sessionData);
         return;
       }
-      
+
       setError(result.error || "Failed to fetch workout session");
     } catch (err) {
       console.error("Error fetching workout session:", err);
@@ -103,7 +103,7 @@ export function useWorkoutSession(sessionId: string) {
           toast.success("Set recorded successfully!");
           return;
         }
-        
+
         toast.error(result.error || "Failed to update set");
       } catch (err) {
         console.error("Error updating set:", err);
@@ -155,7 +155,7 @@ export function useWorkoutSession(sessionId: string) {
           toast.success("Exercise order updated!");
           return;
         }
-        
+
         throw new Error(result.error || "Failed to reorder exercises");
       } catch (err) {
         console.error("Error reordering exercises:", err);
@@ -201,7 +201,7 @@ export function useWorkoutSession(sessionId: string) {
           router.push("/");
           return;
         }
-        
+
         toast.error(result.error || "Failed to finish workout");
         setIsFinishingWorkout(false); // Re-enable if there's an error
       } catch (err) {

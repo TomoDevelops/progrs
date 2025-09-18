@@ -53,9 +53,7 @@ export const ProgressChart = () => {
   const [selectedExerciseId, setSelectedExerciseId] = useState<
     string | undefined
   >();
-  const [timeframe, setTimeframe] = useState<"2W" | "8W" | "6M" | "1Y">(
-    "8W",
-  );
+  const [timeframe, setTimeframe] = useState<"2W" | "8W" | "6M" | "1Y">("8W");
   const [metric, setMetric] = useState<"weight" | "reps" | "volume">("volume"); // Default to Total volume
 
   const {
@@ -187,7 +185,9 @@ export const ProgressChart = () => {
           <div className="flex gap-2">
             <Select
               value={metric}
-              onValueChange={(value) => setMetric(value as "weight" | "reps" | "volume")}
+              onValueChange={(value) =>
+                setMetric(value as "weight" | "reps" | "volume")
+              }
             >
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -203,7 +203,9 @@ export const ProgressChart = () => {
 
             <Select
               value={timeframe}
-              onValueChange={(value) => setTimeframe(value as "2W" | "8W" | "6M" | "1Y")}
+              onValueChange={(value) =>
+                setTimeframe(value as "2W" | "8W" | "6M" | "1Y")
+              }
             >
               <SelectTrigger className="w-20">
                 <SelectValue />
@@ -245,17 +247,17 @@ export const ProgressChart = () => {
                   dataKey="value"
                   stroke="hsl(var(--primary))"
                   strokeWidth={3}
-                  dot={{ 
-                    fill: "hsl(var(--background))", 
-                    stroke: "hsl(var(--primary))", 
-                    strokeWidth: 2, 
-                    r: 5 
+                  dot={{
+                    fill: "hsl(var(--background))",
+                    stroke: "hsl(var(--primary))",
+                    strokeWidth: 2,
+                    r: 5,
                   }}
-                  activeDot={{ 
-                    r: 7, 
-                    fill: "hsl(var(--primary))", 
-                    stroke: "hsl(var(--background))", 
-                    strokeWidth: 3 
+                  activeDot={{
+                    r: 7,
+                    fill: "hsl(var(--primary))",
+                    stroke: "hsl(var(--background))",
+                    strokeWidth: 3,
                   }}
                 />
               </LineChart>

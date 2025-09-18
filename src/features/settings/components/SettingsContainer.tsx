@@ -5,12 +5,12 @@ import { Header } from "@/shared/components/Header";
 import { ProfileSection } from "./sections/ProfileSection";
 import { TrainingSection } from "./sections/TrainingSection";
 import { DashboardSection } from "./sections/DashboardSection";
-import { NotificationsSection } from "./sections/NotificationsSection";
+// import { NotificationsSection } from "./sections/NotificationsSection";
 import { SecuritySection } from "./sections/SecuritySection";
-import { PrivacySection } from "./sections/PrivacySection";
-import { AppearanceSection } from "./sections/AppearanceSection";
-import { LanguageSection } from "./sections/LanguageSection";
-import { ShortcutsSection } from "./sections/ShortcutsSection";
+// import { PrivacySection } from "./sections/PrivacySection";
+// import { AppearanceSection } from "./sections/AppearanceSection";
+// import { LanguageSection } from "./sections/LanguageSection";
+// import { ShortcutsSection } from "./sections/ShortcutsSection";
 import { Button } from "@/shared/components/ui/button";
 import {
   Sheet,
@@ -30,16 +30,18 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
+import { useAuthenticatedSession } from "@/shared/hooks/useSession";
+import { authClient } from "@/shared/lib/auth-client";
 import {
   User,
   Dumbbell,
   BarChart3,
-  Bell,
+  // Bell,
   Shield,
-  Eye,
-  Palette,
-  Globe,
-  Keyboard,
+  // Eye,
+  // Palette,
+  // Globe,
+  // Keyboard,
   Menu,
   ChevronLeft,
   ChevronRight,
@@ -49,7 +51,7 @@ export type SettingsSection =
   | "profile"
   | "training"
   | "dashboard"
-  | "notifications"
+  // | "notifications"
   | "security"
   | "privacy"
   | "appearance"
@@ -75,45 +77,48 @@ const navigationItems = [
     icon: BarChart3,
     description: "Chart preferences and display options",
   },
-  {
-    id: "notifications" as const,
-    label: "Notifications",
-    icon: Bell,
-    description: "Email, push, and reminder settings",
-  },
+  // {
+  //   id: "notifications" as const,
+  //   label: "Notifications",
+  //   icon: Bell,
+  //   description: "Email, push, and reminder settings",
+  // },
   {
     id: "security" as const,
     label: "Security",
     icon: Shield,
     description: "Password and two-factor authentication",
   },
-  {
-    id: "privacy" as const,
-    label: "Privacy & Data",
-    icon: Eye,
-    description: "Data sharing and visibility settings",
-  },
-  {
-    id: "appearance" as const,
-    label: "Appearance",
-    icon: Palette,
-    description: "Theme and visual preferences",
-  },
-  {
-    id: "language" as const,
-    label: "Language & Region",
-    icon: Globe,
-    description: "Language, timezone, and locale settings",
-  },
-  {
-    id: "shortcuts" as const,
-    label: "Keyboard Shortcuts",
-    icon: Keyboard,
-    description: "Customize keyboard shortcuts",
-  },
+  // {
+  //   id: "privacy" as const,
+  //   label: "Privacy & Data",
+  //   icon: Eye,
+  //   description: "Data sharing and visibility settings",
+  // },
+  // {
+  //   id: "appearance" as const,
+  //   label: "Appearance",
+  //   icon: Palette,
+  //   description: "Theme and visual preferences",
+  // },
+  // {
+  //   id: "language" as const,
+  //   label: "Language & Region",
+  //   icon: Globe,
+  //   description: "Language, timezone, and locale settings",
+  // },
+  // {
+  //   id: "shortcuts" as const,
+  //   label: "Keyboard Shortcuts",
+  //   icon: Keyboard,
+  //   description: "Customize keyboard shortcuts",
+  // },
 ];
 
 export function SettingsContainer() {
+  // Verify session and redirect to login if not authenticated
+  useAuthenticatedSession();
+
   const [activeSection, setActiveSection] =
     useState<SettingsSection>("profile");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -124,7 +129,7 @@ export function SettingsContainer() {
 
   const handleSignOut = async () => {
     try {
-      // TODO: Implement sign out logic
+      await authClient.signOut();
       toast.success("Signed out successfully");
       router.push("/login");
     } catch {
@@ -232,25 +237,25 @@ export function SettingsContainer() {
         return <TrainingSection {...sectionProps} />;
       case "dashboard":
         return <DashboardSection {...sectionProps} />;
-      case "notifications":
-        return <NotificationsSection {...sectionProps} />;
+      // case "notifications":
+      // return <NotificationsSection {...sectionProps} />;
       case "security":
         return <SecuritySection {...sectionProps} />;
-      case "privacy":
-        return <PrivacySection {...sectionProps} />;
-      case "appearance":
-        return <AppearanceSection {...sectionProps} />;
-      case "language":
-        return <LanguageSection {...sectionProps} />;
-      case "shortcuts":
-        return <ShortcutsSection {...sectionProps} />;
+      // case "privacy":
+      //   return <PrivacySection {...sectionProps} />;
+      // case "appearance":
+      //   return <AppearanceSection {...sectionProps} />;
+      // case "language":
+      //   return <LanguageSection {...sectionProps} />;
+      // case "shortcuts":
+      //   return <ShortcutsSection {...sectionProps} />;
       default:
         return <ProfileSection {...sectionProps} />;
     }
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <Header
         onSignOut={handleSignOut}
@@ -259,7 +264,7 @@ export function SettingsContainer() {
       />
 
       {/* Page Header */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b backdrop-blur">
+      <div className="border-b bg-gray-100 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6">
             <h1 className="text-foreground text-2xl font-semibold">Settings</h1>

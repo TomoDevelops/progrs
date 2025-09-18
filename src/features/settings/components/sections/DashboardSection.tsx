@@ -1,15 +1,29 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Switch } from "@/shared/components/ui/switch";
 import { Separator } from "@/shared/components/ui/separator";
 import { Save, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UserSettings, UserSettingsUpdate } from "@/features/settings/types";
+import type {
+  UserSettings,
+  UserSettingsUpdate,
+} from "@/features/settings/types";
 
 interface DashboardFormData {
   chartDefaultMetric: "total_volume" | "one_rm" | "duration" | "body_weight";
@@ -24,8 +38,10 @@ interface DashboardSectionProps {
   ref?: React.Ref<HTMLElement>;
 }
 
-export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionProps>(
-  ({ id }, ref) => {
+export const DashboardSection = React.forwardRef<
+  HTMLElement,
+  DashboardSectionProps
+>(({ id }, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<DashboardFormData>({
     chartDefaultMetric: "total_volume",
@@ -99,8 +115,10 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
       <section ref={ref} id={id} className="space-y-6">
         <Card className="rounded-2xl shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold">Dashboard & Analytics</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-lg font-semibold">
+              Dashboard & Analytics
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
               Chart preferences and dashboard components
             </p>
           </CardHeader>
@@ -119,8 +137,10 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
       <Card className="rounded-2xl shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle className="text-lg font-semibold">Dashboard & Analytics</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-lg font-semibold">
+              Dashboard & Analytics
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
               Chart preferences and dashboard components
             </p>
           </div>
@@ -159,15 +179,19 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
           {/* Chart Preferences */}
           <div className="space-y-4">
             <h4 className="font-medium">Chart Preferences</h4>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Default Chart Metric</Label>
                 <Select
                   value={formData.chartDefaultMetric}
-                  onValueChange={(value: "total_volume" | "one_rm" | "duration" | "body_weight") => 
-                    setFormData({ ...formData, chartDefaultMetric: value })
-                  }
+                  onValueChange={(
+                    value:
+                      | "total_volume"
+                      | "one_rm"
+                      | "duration"
+                      | "body_weight",
+                  ) => setFormData({ ...formData, chartDefaultMetric: value })}
                   disabled={!isEditing}
                 >
                   <SelectTrigger>
@@ -181,12 +205,12 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Default Time Range</Label>
                 <Select
                   value={formData.chartDefaultRange}
-                  onValueChange={(value: "2w" | "8w" | "6m" | "1y") => 
+                  onValueChange={(value: "2w" | "8w" | "6m" | "1y") =>
                     setFormData({ ...formData, chartDefaultRange: value })
                   }
                   disabled={!isEditing}
@@ -203,12 +227,12 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
                 </Select>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Heatmap Metric</Label>
               <Select
                 value={formData.heatmapMetric}
-                onValueChange={(value: "volume" | "minutes") => 
+                onValueChange={(value: "volume" | "minutes") =>
                   setFormData({ ...formData, heatmapMetric: value })
                 }
                 disabled={!isEditing}
@@ -229,34 +253,34 @@ export const DashboardSection = React.forwardRef<HTMLElement, DashboardSectionPr
           {/* Dashboard Components */}
           <div className="space-y-4">
             <h4 className="font-medium">Dashboard Components</h4>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>PR Badges</Label>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Show personal record badges
                   </p>
                 </div>
                 <Switch
                   checked={formData.showPrBadges}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setFormData({ ...formData, showPrBadges: checked })
                   }
                   disabled={!isEditing}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Body Weight Overlay</Label>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Show body weight data on charts
                   </p>
                 </div>
                 <Switch
                   checked={formData.showBodyWeightOverlay}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setFormData({ ...formData, showBodyWeightOverlay: checked })
                   }
                   disabled={!isEditing}

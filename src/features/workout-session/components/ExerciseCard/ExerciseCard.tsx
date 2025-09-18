@@ -104,7 +104,8 @@ export function ExerciseCard({
         <div className="space-y-3">
           {exercise.sets.map((set, index) => {
             const isRecording = recordingSet === set.id;
-            const isCurrentlyUpdating = isUpdatingSet && recordingSet === set.id;
+            const isCurrentlyUpdating =
+              isUpdatingSet && recordingSet === set.id;
 
             return (
               <div
@@ -213,18 +214,18 @@ export function ExerciseCard({
                           </span>
                         )}
                         {!set.weight || !set.reps ? (
-                           <Button
-                             size="sm"
-                             variant="outline"
-                             onClick={() => handleSetRecord(set.id)}
-                             disabled={isUpdatingSet}
-                             className="h-8 px-3"
-                           >
-                             Record
-                           </Button>
-                         ) : null}
-                       </div>
-                     )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSetRecord(set.id)}
+                            disabled={isUpdatingSet}
+                            className="h-8 px-3"
+                          >
+                            Record
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

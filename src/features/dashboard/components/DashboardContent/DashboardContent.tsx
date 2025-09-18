@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Loader2, Repeat } from "lucide-react";
+import { Repeat } from "lucide-react";
 import { Header } from "@/shared/components/Header";
 import type { UseDashboardReturn } from "@/features/dashboard/hooks/useDashboard";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
@@ -47,7 +47,7 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
-  const { } = useActiveSession();
+  const {} = useActiveSession();
   const router = useRouter();
   const {
     currentWeek,
@@ -58,14 +58,8 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   // Only enable data fetching when user is authenticated and not loading
   const isDataEnabled = !!user && !authLoading;
 
-  const {
-    stats,
-    todayWorkouts,
-    history,
-    consistency,
-    isError,
-    error,
-  } = useDashboardData(isDataEnabled);
+  const { stats, todayWorkouts, history, consistency, isError, error } =
+    useDashboardData(isDataEnabled);
   const [selectedWorkout, setSelectedWorkout] =
     useState<WorkoutHistoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -286,8 +280,8 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
               {todayWorkouts.isLoading ? (
                 <TodayWorkoutCardSkeleton />
               ) : (
-                <TodayWorkoutCard 
-                  workouts={todayWorkouts.data || []} 
+                <TodayWorkoutCard
+                  workouts={todayWorkouts.data || []}
                   selectedIndex={selectedWorkoutIndex}
                   onWorkoutIndexChange={setSelectedWorkoutIndex}
                 />
@@ -446,7 +440,11 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                 />
               )}
             >
-              {stats.isLoading ? <ProgressBadgesSkeleton /> : <ProgressBadges />}
+              {stats.isLoading ? (
+                <ProgressBadgesSkeleton />
+              ) : (
+                <ProgressBadges />
+              )}
             </ErrorBoundary>
 
             {/* Activity Heatmap */}

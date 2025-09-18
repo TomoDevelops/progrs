@@ -6,7 +6,7 @@ import {
   User,
   Dumbbell,
   BarChart3,
-  Bell,
+  // Bell,
   Shield,
   Eye,
   Palette,
@@ -39,12 +39,12 @@ const navigationItems = [
     icon: BarChart3,
     description: "Chart preferences and display options",
   },
-  {
-    id: "notifications" as const,
-    label: "Notifications",
-    icon: Bell,
-    description: "Email, push, and reminder settings",
-  },
+  // {
+  //   id: "notifications" as const,
+  //   label: "Notifications",
+  //   icon: Bell,
+  //   description: "Email, push, and reminder settings",
+  // },
   {
     id: "security" as const,
     label: "Security",
@@ -86,27 +86,29 @@ export function SettingsNavigation({
       {navigationItems.map((item) => {
         const Icon = item.icon;
         const isActive = activeSection === item.id;
-        
+
         return (
           <Button
             key={item.id}
             variant={isActive ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start h-auto p-4 text-left",
+              "h-auto w-full justify-start p-4 text-left",
               isActive
                 ? "bg-orange-600 text-white hover:bg-orange-700"
-                : "text-gray-700 hover:bg-gray-100"
+                : "text-gray-700 hover:bg-gray-100",
             )}
             onClick={() => onSectionChange(item.id)}
           >
             <div className="flex items-start gap-3">
-              <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
+              <Icon className="mt-0.5 h-5 w-5 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
                 <div className="font-medium">{item.label}</div>
-                <div className={cn(
-                  "text-sm mt-1",
-                  isActive ? "text-orange-100" : "text-gray-500"
-                )}>
+                <div
+                  className={cn(
+                    "mt-1 text-sm",
+                    isActive ? "text-orange-100" : "text-gray-500",
+                  )}
+                >
                   {item.description}
                 </div>
               </div>

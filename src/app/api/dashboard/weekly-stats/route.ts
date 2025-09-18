@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     const weeklyStats = await dashboardRepository.getCurrentAndLastWeekStats(
-      session.user.id
+      session.user.id,
     );
 
     return NextResponse.json(weeklyStats);
@@ -22,7 +22,7 @@ export async function GET() {
     console.error("Error fetching weekly stats:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

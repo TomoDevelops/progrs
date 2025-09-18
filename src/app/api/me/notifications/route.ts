@@ -3,20 +3,12 @@ import { auth } from "@/shared/config/auth/auth";
 import { db } from "@/shared/db/database";
 import { notificationPreferences } from "@/shared/db/schema/app-schema";
 import { eq } from "drizzle-orm";
-import { notificationPreferencesSchema, notificationPreferencesUpdateSchema } from "@/features/settings/types";
-import type { NotificationPreferences, NotificationPreferencesUpdate } from "@/features/settings/types";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import {
+  notificationPreferencesSchema,
+  notificationPreferencesUpdateSchema,
+} from "@/features/settings/types";
+import type { NotificationPreferences } from "@/features/settings/types";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,10 +37,12 @@ export async function GET(request: NextRequest) {
 
     // If no preferences exist, return defaults
     const defaultPreferences = notificationPreferencesSchema.parse({});
-    const userPreferences = preferences ? {
-      ...defaultPreferences,
-      ...preferences,
-    } : defaultPreferences;
+    const userPreferences = preferences
+      ? {
+          ...defaultPreferences,
+          ...preferences,
+        }
+      : defaultPreferences;
 
     const response: ApiSuccessResponse<NotificationPreferences> = {
       success: true,
@@ -135,7 +129,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error in /api/me/notifications PUT:", error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         {
           success: false,

@@ -220,12 +220,10 @@ export async function getDateFnsLocale(
 /**
  * Gets locale-specific number formatting options
  */
-export function getNumberFormatOptions(
-  _localeCode: SupportedLocaleCode,
-): Intl.NumberFormatOptions {
-  // eslint-disable-line @typescript-eslint/no-unused-vars
+export function getNumberFormatOptions(): Intl.NumberFormatOptions {
+  // TODO: Add locale-specific number formatting preferences
+  // Currently using default formatting for all locales
   return {
-    // Add locale-specific number formatting preferences here
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   };
@@ -238,10 +236,9 @@ export function formatNumber(
   value: number,
   localeCode: SupportedLocaleCode,
 ): string {
-  return new Intl.NumberFormat(
-    localeCode,
-    getNumberFormatOptions(localeCode),
-  ).format(value);
+  return new Intl.NumberFormat(localeCode, getNumberFormatOptions()).format(
+    value,
+  );
 }
 
 /**

@@ -31,7 +31,7 @@ export const userSettingsSchema = z.object({
   warmupPreset: z.string().default("40-60-75-90"),
   defaultWorkoutView: defaultWorkoutViewSchema.default("last"),
   quickStartDefaultSplit: z.string().optional(),
-  
+
   chartDefaultMetric: chartMetricSchema.default("total_volume"),
   chartDefaultRange: chartRangeSchema.default("8w"),
   heatmapMetric: heatmapMetricSchema.default("volume"),
@@ -40,7 +40,7 @@ export const userSettingsSchema = z.object({
   timeFormat: timeFormatSchema.default("24h"),
   language: z.string().optional(),
   theme: themeSchema.default("system"),
-  
+
   prToastsEnabled: z.boolean().default(true),
   showPrBadges: z.boolean().default(true),
   streakNudgesEnabled: z.boolean().default(true),
@@ -61,21 +61,28 @@ export const notificationPreferencesSchema = z.object({
 });
 
 // Partial schema for updates
-export const notificationPreferencesUpdateSchema = notificationPreferencesSchema.partial();
+export const notificationPreferencesUpdateSchema =
+  notificationPreferencesSchema.partial();
 
 // Workout reminder schema
 export const workoutReminderSchema = z.object({
   id: z.string().optional(),
   dayOfWeek: z.number().int().min(0).max(6), // 0=Sun, 6=Sat
-  timeLocal: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+  timeLocal: z
+    .string()
+    .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
   enabled: z.boolean().default(true),
 });
 
 // Create reminder schema (without id)
-export const createWorkoutReminderSchema = workoutReminderSchema.omit({ id: true });
+export const createWorkoutReminderSchema = workoutReminderSchema.omit({
+  id: true,
+});
 
 // Update reminder schema
-export const updateWorkoutReminderSchema = workoutReminderSchema.partial().required({ id: true });
+export const updateWorkoutReminderSchema = workoutReminderSchema
+  .partial()
+  .required({ id: true });
 
 // Push subscription schema
 export const pushSubscriptionSchema = z.object({
@@ -87,9 +94,18 @@ export const pushSubscriptionSchema = z.object({
 
 // Profile update schema
 export const profileUpdateSchema = z.object({
-  username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores").optional(),
+  name: z.string().min(1).max(100).optional(),
+  username: z
+    .string()
+    .min(3)
+    .max(20)
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores",
+    )
+    .optional(),
   bio: z.string().max(280).optional(),
-  image: z.string().url().optional(),
+  image: z.url().optional(),
 });
 
 // Data export schema
@@ -117,8 +133,12 @@ export type Visibility = z.infer<typeof visibilitySchema>;
 
 export type UserSettings = z.infer<typeof userSettingsSchema>;
 export type UserSettingsUpdate = z.infer<typeof userSettingsUpdateSchema>;
-export type NotificationPreferences = z.infer<typeof notificationPreferencesSchema>;
-export type NotificationPreferencesUpdate = z.infer<typeof notificationPreferencesUpdateSchema>;
+export type NotificationPreferences = z.infer<
+  typeof notificationPreferencesSchema
+>;
+export type NotificationPreferencesUpdate = z.infer<
+  typeof notificationPreferencesUpdateSchema
+>;
 export type WorkoutReminder = z.infer<typeof workoutReminderSchema>;
 export type CreateWorkoutReminder = z.infer<typeof createWorkoutReminderSchema>;
 export type UpdateWorkoutReminder = z.infer<typeof updateWorkoutReminderSchema>;
@@ -144,7 +164,7 @@ export interface UserProfile {
 }
 
 // Settings section types for UI organization
-export type SettingsSection = 
+export type SettingsSection =
   | "profile"
   | "security"
   | "training"
@@ -193,7 +213,9 @@ export interface SettingsContextType {
   notifications: NotificationPreferences;
   reminders: WorkoutReminder[];
   updateSettings: (updates: UserSettingsUpdate) => Promise<void>;
-  updateNotifications: (updates: NotificationPreferencesUpdate) => Promise<void>;
+  updateNotifications: (
+    updates: NotificationPreferencesUpdate,
+  ) => Promise<void>;
   createReminder: (reminder: CreateWorkoutReminder) => Promise<void>;
   updateReminder: (reminder: UpdateWorkoutReminder) => Promise<void>;
   deleteReminder: (id: string) => Promise<void>;

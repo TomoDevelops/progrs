@@ -69,7 +69,7 @@ export function ExerciseList({
   const handleExerciseRemove = (index: number, exerciseId: string) => {
     // Remove from form field array
     remove(index);
-    
+
     // Remove from selected exercises
     setSelectedExercises((prev) => {
       const updated = { ...prev };

@@ -2,7 +2,12 @@
 
 import { Badge } from "@/shared/components/ui/badge";
 import { Trophy, Flame, TrendingUp, Award } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +32,9 @@ interface StreakInfo {
 
 // API function to fetch personal records
 const fetchPersonalRecords = async (): Promise<PersonalRecord[]> => {
-  const response = await fetch("/api/dashboard/personal-records?limit=5&days=30");
+  const response = await fetch(
+    "/api/dashboard/personal-records?limit=5&days=30",
+  );
   if (!response.ok) {
     throw new Error("Failed to fetch personal records");
   }
@@ -37,7 +44,7 @@ const fetchPersonalRecords = async (): Promise<PersonalRecord[]> => {
 
 export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
   const { stats, consistency } = useDashboardData();
-  
+
   // Fetch personal records
   const { data: recentPRs = [] } = useQuery({
     queryKey: ["personal-records"],
@@ -48,19 +55,19 @@ export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
   // Calculate current streak from consistency data
   const calculateCurrentStreak = () => {
     if (!consistency.data || consistency.data.length === 0) return 0;
-    
+
     let streak = 0;
-    const sortedData = [...consistency.data].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+    const sortedData = [...consistency.data].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-    
+
     for (const day of sortedData) {
       if (day.workoutsCompleted <= 0) {
         break;
       }
       streak++;
     }
-    
+
     return streak;
   };
 
@@ -113,7 +120,9 @@ export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
         {/* Workout Streaks */}
         {currentStreak > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700">Workout Streaks</h4>
+            <h4 className="text-sm font-medium text-gray-700">
+              Workout Streaks
+            </h4>
             <div className="flex flex-wrap gap-2">
               <Badge
                 variant="secondary"
@@ -123,17 +132,20 @@ export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <Flame className={`h-3 w-3 ${
-                  streakInfo.isActive ? "text-orange-600" : "text-gray-400"
-                }`} />
+                <Flame
+                  className={`h-3 w-3 ${
+                    streakInfo.isActive ? "text-orange-600" : "text-gray-400"
+                  }`}
+                />
                 <span className="font-medium">
-                  {streakInfo.current} day{streakInfo.current !== 1 ? 's' : ''} streak
+                  {streakInfo.current} day{streakInfo.current !== 1 ? "s" : ""}{" "}
+                  streak
                 </span>
                 {streakInfo.isActive && (
                   <span className="text-xs text-orange-600">🔥</span>
                 )}
               </Badge>
-              
+
               {streakInfo.longest > streakInfo.current && (
                 <Badge
                   variant="outline"
@@ -141,7 +153,8 @@ export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
                 >
                   <TrendingUp className="h-3 w-3" />
                   <span className="text-xs">
-                    Best: {streakInfo.longest} day{streakInfo.longest !== 1 ? 's' : ''}
+                    Best: {streakInfo.longest} day
+                    {streakInfo.longest !== 1 ? "s" : ""}
                   </span>
                 </Badge>
               )}
@@ -153,11 +166,12 @@ export const ProgressBadges = ({ className }: ProgressBadgesProps) => {
         {currentStreak >= 7 && (
           <div className="rounded-lg bg-green-50 p-3">
             <p className="text-sm text-green-800">
-              🎉 Amazing! You&apos;re on a {currentStreak}-day streak. Keep it up!
+              🎉 Amazing! You&apos;re on a {currentStreak}-day streak. Keep it
+              up!
             </p>
           </div>
         )}
-        
+
         {currentStreak >= 30 && (
           <div className="rounded-lg bg-purple-50 p-3">
             <p className="text-sm text-purple-800">

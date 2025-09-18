@@ -32,13 +32,15 @@ interface TodayWorkoutCardProps {
   onWorkoutIndexChange?: (index: number) => void;
 }
 
-export function TodayWorkoutCard({ 
-  workouts, 
-  selectedIndex = 0, 
-  onWorkoutIndexChange 
+export function TodayWorkoutCard({
+  workouts,
+  selectedIndex = 0,
+  onWorkoutIndexChange,
 }: TodayWorkoutCardProps) {
   const [internalIndex, setInternalIndex] = useState(0);
-  const currentWorkoutIndex = onWorkoutIndexChange ? selectedIndex : internalIndex;
+  const currentWorkoutIndex = onWorkoutIndexChange
+    ? selectedIndex
+    : internalIndex;
   const setCurrentWorkoutIndex = onWorkoutIndexChange || setInternalIndex;
   if (!workouts || workouts.length === 0) {
     return (
@@ -65,12 +67,14 @@ export function TodayWorkoutCard({
   const hasMultipleWorkouts = workouts.length > 1;
 
   const handlePrevious = () => {
-    const newIndex = currentWorkoutIndex === 0 ? workouts.length - 1 : currentWorkoutIndex - 1;
+    const newIndex =
+      currentWorkoutIndex === 0 ? workouts.length - 1 : currentWorkoutIndex - 1;
     setCurrentWorkoutIndex(newIndex);
   };
 
   const handleNext = () => {
-    const newIndex = currentWorkoutIndex === workouts.length - 1 ? 0 : currentWorkoutIndex + 1;
+    const newIndex =
+      currentWorkoutIndex === workouts.length - 1 ? 0 : currentWorkoutIndex + 1;
     setCurrentWorkoutIndex(newIndex);
   };
 

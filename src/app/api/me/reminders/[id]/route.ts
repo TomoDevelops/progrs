@@ -4,22 +4,11 @@ import { db } from "@/shared/db/database";
 import { workoutReminders } from "@/shared/db/schema/app-schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
-
-type ApiSuccessResponse<T> = {
-  success: true;
-  data?: T;
-  message?: string;
-};
-
-type ApiErrorResponse = {
-  success: false;
-  error: string;
-  details?: string;
-};
+import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -56,8 +45,8 @@ export async function DELETE(
       .where(
         and(
           eq(workoutReminders.id, id),
-          eq(workoutReminders.userId, session.user.id)
-        )
+          eq(workoutReminders.userId, session.user.id),
+        ),
       )
       .returning();
 
@@ -66,7 +55,8 @@ export async function DELETE(
         {
           success: false,
           error: "Not Found",
-          details: "Reminder not found or you don't have permission to delete it",
+          details:
+            "Reminder not found or you don't have permission to delete it",
         } satisfies ApiErrorResponse,
         { status: 404 },
       );

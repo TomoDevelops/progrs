@@ -128,7 +128,7 @@ export function CreateWorkoutRoutineDialog({
         onSuccess?.();
         return;
       }
-      
+
       console.error("Failed to create routine:", result.error);
       toast.error("Failed to create routine", {
         description: result.error || "An unexpected error occurred",
@@ -283,7 +283,7 @@ export function CreateWorkoutRoutineDialog({
                                 field.onChange(utcDate);
                                 return;
                               }
-                              
+
                               field.onChange(date);
                             }}
                             disabled={(date) =>

@@ -30,7 +30,7 @@ export function LocaleSync() {
       document.documentElement.classList.add("rtl");
       return;
     }
-    
+
     if (!isRTL && hasRTLClass) {
       document.documentElement.classList.remove("rtl");
     }

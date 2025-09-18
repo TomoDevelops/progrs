@@ -517,13 +517,16 @@ export class DashboardRepository {
     }));
   }
 
-  async getWeeklyStats(userId: string, weekOffset: number = 0): Promise<WeeklyStats> {
+  async getWeeklyStats(
+    userId: string,
+    weekOffset: number = 0,
+  ): Promise<WeeklyStats> {
     // Calculate the start and end of the target week
     const now = new Date();
     const currentWeekStart = new Date(now);
-    currentWeekStart.setDate(now.getDate() - now.getDay() - (weekOffset * 7)); // Start of week (Sunday)
+    currentWeekStart.setDate(now.getDate() - now.getDay() - weekOffset * 7); // Start of week (Sunday)
     currentWeekStart.setHours(0, 0, 0, 0);
-    
+
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(currentWeekStart.getDate() + 6); // End of week (Saturday)
     weekEnd.setHours(23, 59, 59, 999);
@@ -541,8 +544,8 @@ export class DashboardRepository {
           eq(workoutSessions.userId, userId),
           gte(workoutSessions.endedAt, currentWeekStart),
           lte(workoutSessions.endedAt, weekEnd),
-          sql`${workoutSessions.endedAt} IS NOT NULL`
-        )
+          sql`${workoutSessions.endedAt} IS NOT NULL`,
+        ),
       );
 
     // Calculate total volume for the week
@@ -551,16 +554,22 @@ export class DashboardRepository {
         totalVolume: sql<number>`COALESCE(SUM(${exerciseSets.weight} * ${exerciseSets.reps}), 0)`,
       })
       .from(exerciseSets)
-      .innerJoin(sessionExercises, eq(exerciseSets.sessionExerciseId, sessionExercises.id))
-      .innerJoin(workoutSessions, eq(sessionExercises.sessionId, workoutSessions.id))
+      .innerJoin(
+        sessionExercises,
+        eq(exerciseSets.sessionExerciseId, sessionExercises.id),
+      )
+      .innerJoin(
+        workoutSessions,
+        eq(sessionExercises.sessionId, workoutSessions.id),
+      )
       .where(
         and(
           eq(workoutSessions.userId, userId),
           gte(workoutSessions.endedAt, currentWeekStart),
           lte(workoutSessions.endedAt, weekEnd),
           sql`${workoutSessions.endedAt} IS NOT NULL`,
-          sql`${exerciseSets.weight} IS NOT NULL`
-        )
+          sql`${exerciseSets.weight} IS NOT NULL`,
+        ),
       );
 
     const totalDuration = sessions.reduce((sum, session) => {
@@ -574,7 +583,9 @@ export class DashboardRepository {
     };
   }
 
-  async getCurrentAndLastWeekStats(userId: string): Promise<{ currentWeek: WeeklyStats; lastWeek: WeeklyStats }> {
+  async getCurrentAndLastWeekStats(
+    userId: string,
+  ): Promise<{ currentWeek: WeeklyStats; lastWeek: WeeklyStats }> {
     const [currentWeek, lastWeek] = await Promise.all([
       this.getWeeklyStats(userId, 0), // Current week
       this.getWeeklyStats(userId, 1), // Last week

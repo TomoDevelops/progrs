@@ -57,14 +57,14 @@ export const TodayWorkoutCardSkeleton = () => {
       <CardFooter className="mt-auto w-full">
         <div className="flex w-full items-center justify-between">
           <Skeleton className="h-8 w-20" />
-          
+
           {/* Workout Indicators */}
           <div className="flex items-center gap-2">
             {Array.from({ length: 3 }).map((_, index) => (
               <Skeleton key={index} className="h-2 w-2 rounded-full" />
             ))}
           </div>
-          
+
           <Skeleton className="h-8 w-16" />
         </div>
       </CardFooter>

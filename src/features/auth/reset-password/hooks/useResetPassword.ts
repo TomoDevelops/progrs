@@ -114,7 +114,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
         setError(error.message || "Failed to reset password");
         return;
       }
-      
+
       // Clear session storage
       sessionStorage.removeItem("reset-email");
       sessionStorage.removeItem("reset-otp");

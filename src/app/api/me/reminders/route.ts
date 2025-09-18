@@ -3,6 +3,7 @@ import { auth } from "@/shared/config/auth/auth";
 import { db } from "@/shared/db/database";
 import { workoutReminders } from "@/shared/db/schema/app-schema";
 import { eq, and } from "drizzle-orm";
+import { headers } from "next/headers";
 import {
   createWorkoutReminderSchema,
   updateWorkoutReminderSchema,
@@ -10,11 +11,11 @@ import {
 import type { WorkoutReminder } from "@/features/settings/types";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
-      headers: request.headers,
+      headers: await headers(),
     });
 
     if (!session) {
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
-      headers: request.headers,
+      headers: await headers(),
     });
 
     if (!session) {
@@ -123,7 +124,7 @@ export async function PUT(request: NextRequest) {
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
-      headers: request.headers,
+      headers: await headers(),
     });
 
     if (!session) {

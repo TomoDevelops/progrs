@@ -26,7 +26,6 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import type { UseLoginReturn } from "@/features/auth/login/hooks/useLogin";
-import Image from "next/image";
 import LoginWithLine from "@/shared/components/External/LoginWithLine";
 import LoginWithGoogle from "@/shared/components/External/LoginWithGoogle";
 

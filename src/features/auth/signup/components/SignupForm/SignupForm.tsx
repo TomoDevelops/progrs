@@ -26,7 +26,6 @@ import {
 } from "@/shared/components/ui/form";
 import type { UseSignupReturn } from "@/features/auth/signup/hooks/useSignup";
 import { useState } from "react";
-import Image from "next/image";
 import LoginWithLine from "@/shared/components/External/LoginWithLine";
 import LoginWithGoogle from "@/shared/components/External/LoginWithGoogle";
 

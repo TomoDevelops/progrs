@@ -13,7 +13,6 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "MM/dd/yyyy",
     timeFormat: "12h",
     firstDayOfWeek: 0, // Sunday
-    rtl: false,
   },
   "en-GB": {
     code: "en-GB",
@@ -21,7 +20,6 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "dd/MM/yyyy",
     timeFormat: "24h",
     firstDayOfWeek: 1, // Monday
-    rtl: false,
   },
   "ja-JP": {
     code: "ja-JP",
@@ -29,7 +27,6 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "yyyy/MM/dd",
     timeFormat: "24h",
     firstDayOfWeek: 0, // Sunday
-    rtl: false,
   },
   "de-DE": {
     code: "de-DE",
@@ -37,7 +34,6 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "dd.MM.yyyy",
     timeFormat: "24h",
     firstDayOfWeek: 1, // Monday
-    rtl: false,
   },
   "fr-FR": {
     code: "fr-FR",
@@ -45,7 +41,6 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "dd/MM/yyyy",
     timeFormat: "24h",
     firstDayOfWeek: 1, // Monday
-    rtl: false,
   },
   "es-ES": {
     code: "es-ES",
@@ -53,16 +48,8 @@ export const SUPPORTED_LOCALES = {
     dateFormat: "dd/MM/yyyy",
     timeFormat: "24h",
     firstDayOfWeek: 1, // Monday
-    rtl: false,
   },
-  "ar-SA": {
-    code: "ar-SA",
-    name: "العربية",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "12h",
-    firstDayOfWeek: 6, // Saturday
-    rtl: true,
-  },
+
 } as const;
 
 export type SupportedLocaleCode = keyof typeof SUPPORTED_LOCALES;
@@ -128,12 +115,7 @@ export function getLocaleConfig(locale: SupportedLocaleCode): LocaleConfig {
   return SUPPORTED_LOCALES[locale];
 }
 
-/**
- * Checks if a locale uses RTL (Right-to-Left) text direction
- */
-export function isRTLLocale(locale: SupportedLocaleCode): boolean {
-  return SUPPORTED_LOCALES[locale].rtl;
-}
+
 
 /**
  * Gets the first day of week for a locale (0 = Sunday, 1 = Monday, etc.)
@@ -199,9 +181,6 @@ export async function getDateFnsLocale(
       case "es-ES":
         const { es } = await import("date-fns/locale/es");
         return es;
-      case "ar-SA":
-        const { arSA } = await import("date-fns/locale/ar-SA");
-        return arSA;
       default:
         // Fallback to en-US
         const { enUS: fallback } = await import("date-fns/locale/en-US");

@@ -3,9 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/shared/providers/QueryProvider";
 import { LocaleProvider } from "@/shared/providers/LocaleProvider";
-import { LocaleSync } from "@/shared/components/LocaleSync";
+
 import { Toaster } from "@/shared/components/ui/sonner";
-import { RTLScript } from "@/shared/components/RTLScript";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +24,6 @@ export const metadata: Metadata = {
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
-      <LocaleSync />
       <QueryProvider>{children}</QueryProvider>
     </LocaleProvider>
   );
@@ -38,9 +36,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <head>
-        <RTLScript />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

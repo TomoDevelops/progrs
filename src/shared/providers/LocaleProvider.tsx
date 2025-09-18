@@ -15,7 +15,6 @@ import {
   storeUserLocale,
   getLocaleConfig,
   getDateFnsLocale,
-  isRTLLocale,
   getFirstDayOfWeek,
   getDateFormat,
   getTimeFormat,
@@ -31,7 +30,6 @@ interface LocaleContextValue {
   setLocale: (locale: SupportedLocaleCode) => void;
 
   // Convenience getters
-  isRTL: boolean;
   firstDayOfWeek: number;
   dateFormat: string;
   timeFormat: "12h" | "24h";
@@ -98,7 +96,6 @@ export function LocaleProvider({
     localeConfig,
     dateFnsLocale,
     setLocale,
-    isRTL: isRTLLocale(locale),
     firstDayOfWeek: getFirstDayOfWeek(locale),
     dateFormat: getDateFormat(locale),
     timeFormat: getTimeFormat(locale),

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { WorkoutSessionDetail } from "@/app/api/dashboard/repository/dashboard.repository";
 
 interface UseWorkoutDetailProps {
@@ -12,22 +12,6 @@ interface UseWorkoutDetailReturn {
   error: string | null;
 }
 
-const fetchWorkoutDetail = async (
-  id: string,
-): Promise<WorkoutSessionDetail> => {
-  const response = await fetch(`/api/dashboard/workout-session/${id}`);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  if (!data.success) {
-    throw new Error(data.error || "Failed to fetch workout details");
-  }
-
-  return data.data;
-};
-
 export const useWorkoutDetail = ({
   workoutId,
   isOpen,
@@ -36,13 +20,16 @@ export const useWorkoutDetail = ({
     data: workoutDetail,
     isLoading: isLoadingDetail,
     error,
-  } = useQuery({
-    queryKey: ["workout-detail", workoutId],
-    queryFn: () => fetchWorkoutDetail(workoutId!),
-    enabled: isOpen && !!workoutId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 1,
-  });
+  } = useApiQuery<WorkoutSessionDetail>(
+    ["workout-detail", workoutId || ""],
+    `/dashboard/workout-session/${workoutId}`,
+    {
+      enabled: isOpen && !!workoutId,
+      staleTime: 2 * 60 * 1000, // 2 minutes
+      retry: 1,
+      showErrorToast: false, // Handle errors in UI
+    },
+  );
 
   return {
     workoutDetail: workoutDetail || null,

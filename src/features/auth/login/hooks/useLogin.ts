@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/shared/lib/auth-client";
 import { useAuth } from "@/shared/hooks/useAuth";
+import { useAsyncSubmit } from "@/shared/hooks/useAsyncState";
 
 export interface LoginFormData {
   email: string;
@@ -19,18 +19,42 @@ export interface UseLoginReturn {
   successMessage: string;
 
   // Actions
-  handleFormSubmit: (data: LoginFormData) => Promise<void>;
+  handleFormSubmit: (data: LoginFormData) => Promise<unknown>;
   handleGoogleSignIn: () => Promise<void>;
   handleLineSignIn: () => Promise<void>;
 }
 
 export const useLogin = (): UseLoginReturn => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { handleSocialAuth, error: authError } = useAuth();
+
+  const {
+    isLoading,
+    error: formError,
+    handleSubmit: handleFormSubmit,
+  } = useAsyncSubmit(
+    async (data: LoginFormData) => {
+      const { error } = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
+
+      if (error) {
+        throw new Error(error.message || "Failed to sign in");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      router.push("/");
+    },
+    {
+      onError: (error) => {
+        console.error("Login error:", error);
+      },
+    }
+  );
 
   // Handle success message directly from searchParams without useEffect
   const message = searchParams.get("message");
@@ -39,52 +63,27 @@ export const useLogin = (): UseLoginReturn => {
       ? "Password reset successfully! Please log in with your new password."
       : "";
 
-  const handleFormSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError("");
 
-    try {
-      const { error } = await authClient.signIn.email({
-        email: data.email,
-        password: data.password,
-        rememberMe: data.rememberMe,
-      });
-
-      if (error) {
-        setError(error.message || "Failed to sign in");
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["session"] });
-
-      router.push("/");
-    } catch {
-      setError("An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     try {
-      setError("");
       await handleSocialAuth("google", "login");
-    } catch {
-      setError("Failed to initiate Google sign in");
+    } catch (error) {
+      console.error("Google sign in error:", error);
     }
   };
 
   const handleLineSignIn = async () => {
     try {
-      setError("");
       await handleSocialAuth("line", "login");
-    } catch {
-      setError("Failed to initiate LINE sign in");
+    } catch (error) {
+      console.error("LINE sign in error:", error);
     }
   };
 
   return {
     isLoading,
-    error: error || authError,
+    error: formError || authError,
     successMessage,
     handleFormSubmit,
     handleGoogleSignIn,

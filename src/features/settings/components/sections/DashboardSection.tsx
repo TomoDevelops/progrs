@@ -19,6 +19,7 @@ import {
 import { Switch } from "@/shared/components/ui/switch";
 import { Separator } from "@/shared/components/ui/separator";
 import { Save, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ErrorState } from "@/shared/components/ErrorState";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useUserSettings } from "@/shared/hooks/useUserSettings";
@@ -235,24 +236,12 @@ export const DashboardSection = React.forwardRef<
             </p>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border border-red-200 bg-red-50 p-4">
-              <div className="flex">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-red-800">
-                    Failed to load dashboard settings. {fetchError.message}
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2" 
-                    onClick={() => refetch()}
-                  >
-                    Retry
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <ErrorState
+              title="Failed to load dashboard settings"
+              message={fetchError.message}
+              onRetry={() => refetch()}
+              retryLabel="Retry"
+            />
           </CardContent>
         </Card>
       </section>

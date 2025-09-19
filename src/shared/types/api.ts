@@ -11,7 +11,7 @@ export type ApiSuccessResponse<T> = {
 export type ApiErrorResponse = {
   success: false;
   error: string;
-  details?: string;
+  details?: string | string[] | Record<string, unknown>[];
 };
 
 /**

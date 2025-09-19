@@ -12,12 +12,14 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import {
-  Shield,
-  Key,
-  Eye,
-  EyeOff,
-  AlertTriangle,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Shield, Key, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface SecuritySectionProps {
@@ -38,8 +40,10 @@ export const SecuritySection = React.forwardRef<
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -83,7 +87,42 @@ export const SecuritySection = React.forwardRef<
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      toast.error("Please enter your password to confirm account deletion");
+      return;
+    }
 
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch("/api/me/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password: deletePassword,
+          confirmDeletion: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete account");
+      }
+
+      toast.success("Account deleted successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account",
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setDeletePassword("");
+    }
+  };
 
   return (
     <section ref={ref} id={id} className="space-y-6">
@@ -218,60 +257,87 @@ export const SecuritySection = React.forwardRef<
 
           {/* Account Security */}
           <div className="space-y-4">
-            <h4 className="flex items-center gap-2 font-medium">
-              <Shield className="h-4 w-4" />
-              Account Security
-            </h4>
             <div className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">Active Sessions</p>
-                    <p className="text-muted-foreground text-sm">
-                      Manage devices signed into your account
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View Sessions
+              <div className="border-destructive/20 bg-destructive/5 flex items-start gap-3 rounded-lg border p-3">
+                <AlertTriangle className="text-destructive mt-0.5 h-5 w-5" />
+                <div className="flex-1">
+                  <p className="text-destructive font-medium">Delete Account</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Permanently delete your account and all associated data.
+                    This action cannot be undone.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    Delete Account
                   </Button>
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">Login History</p>
-                    <p className="text-muted-foreground text-sm">
-                      Review recent sign-in activity
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View History
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="border-destructive/20 bg-destructive/5 flex items-start gap-3 rounded-lg border p-3">
-                  <AlertTriangle className="text-destructive mt-0.5 h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="text-destructive font-medium">
-                      Delete Account
-                    </p>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      Permanently delete your account and all associated data.
-                      This action cannot be undone.
-                    </p>
-                    <Button variant="destructive" size="sm" className="mt-3">
-                      Delete Account
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Account</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove all your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="delete-password"
+                  type={showDeletePassword ? "text" : "password"}
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Enter your password to confirm"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                >
+                  {showDeletePassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeletePassword("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={!deletePassword || isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 });

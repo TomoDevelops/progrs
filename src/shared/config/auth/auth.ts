@@ -91,6 +91,11 @@ export function getAuth() {
         scope: ["openid", "profile"],
       },
     },
+    user: {
+      deleteUser: {
+        enabled: true,
+      },
+    },
     plugins: [...plugins],
   } satisfies Parameters<typeof betterAuth>[0]);
 

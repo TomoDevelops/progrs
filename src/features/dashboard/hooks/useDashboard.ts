@@ -10,7 +10,6 @@ interface UserData {
   email: string;
   username?: string;
   emailVerified: boolean;
-  twoFactorEnabled: boolean;
 }
 
 export interface UseDashboardReturn {

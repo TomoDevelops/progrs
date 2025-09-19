@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { Header } from "@/shared/components/Header";
 import { ProfileSection } from "./sections/ProfileSection";
 import { TrainingSection } from "./sections/TrainingSection";
-import { DashboardSection } from "./sections/DashboardSection";
+// import { DashboardSection } from "./sections/DashboardSection";
 // import { NotificationsSection } from "./sections/NotificationsSection";
 import { SecuritySection } from "./sections/SecuritySection";
 // import { PrivacySection } from "./sections/PrivacySection";
@@ -18,7 +18,7 @@ import { authClient } from "@/shared/lib/auth-client";
 import {
   User,
   Dumbbell,
-  BarChart3,
+  // BarChart3,
   // Bell,
   Shield,
   // Eye,
@@ -30,13 +30,13 @@ import {
 export type SettingsSection =
   | "profile"
   | "training"
-  | "dashboard"
+  // | "dashboard"
   // | "notifications"
-  | "security"
-  | "privacy"
-  | "appearance"
-  | "language"
-  | "shortcuts";
+  | "security";
+// | "privacy"
+// | "appearance"
+// | "language"
+// | "shortcuts"
 
 const navigationItems = [
   {
@@ -51,12 +51,12 @@ const navigationItems = [
     icon: Dumbbell,
     description: "Units, equipment, and workout settings",
   },
-  {
-    id: "dashboard" as const,
-    label: "Dashboard",
-    icon: BarChart3,
-    description: "Chart preferences and display options",
-  },
+  // {
+  //   id: "dashboard" as const,
+  //   label: "Dashboard",
+  //   icon: BarChart3,
+  //   description: "Chart preferences and display options",
+  // },
   // {
   //   id: "notifications" as const,
   //   label: "Notifications",
@@ -122,8 +122,8 @@ export function SettingsContainer() {
         return <ProfileSection {...sectionProps} />;
       case "training":
         return <TrainingSection {...sectionProps} />;
-      case "dashboard":
-        return <DashboardSection {...sectionProps} />;
+      // case "dashboard":
+      // return <DashboardSection {...sectionProps} />;
       // case "notifications":
       // return <NotificationsSection {...sectionProps} />;
       case "security":

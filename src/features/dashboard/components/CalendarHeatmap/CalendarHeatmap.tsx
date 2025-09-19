@@ -98,9 +98,6 @@ export function CalendarHeatmap({ data, className }: CalendarHeatmapProps) {
           <span className="text-lg font-medium tracking-wide">
             Activity Heatmap
           </span>
-          <Button variant="ghost" size="sm">
-            View Details
-          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">

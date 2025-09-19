@@ -47,10 +47,10 @@ interface DashboardContentProps {
 
 export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   const { user, isLoading: authLoading, handleSignOut } = dashboardState;
-  
+
   // Only enable data fetching when user is authenticated and not loading
   const isDataEnabled = !!user && !authLoading;
-  
+
   const router = useRouter();
   const {
     currentWeek,
@@ -351,9 +351,6 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
                   <span className="text-lg font-medium tracking-wide">
                     Recent Workouts
                   </span>
-                  <Button variant="ghost" size="sm">
-                    View All
-                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">

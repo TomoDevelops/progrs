@@ -11,12 +11,9 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
-import { Switch } from "@/shared/components/ui/switch";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Shield,
   Key,
-  Smartphone,
   Eye,
   EyeOff,
   AlertTriangle,
@@ -40,8 +37,9 @@ export const SecuritySection = React.forwardRef<
     newPassword: "",
     confirmPassword: "",
   });
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+
 
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -85,23 +83,7 @@ export const SecuritySection = React.forwardRef<
     }
   };
 
-  const handleToggle2FA = async () => {
-    try {
-      const response = await fetch("/api/me/2fa", {
-        method: twoFactorEnabled ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
-      });
 
-      if (!response.ok) {
-        throw new Error("Failed to update 2FA settings");
-      }
-
-      setTwoFactorEnabled(!twoFactorEnabled);
-      toast.success(twoFactorEnabled ? "2FA disabled" : "2FA enabled");
-    } catch {
-      toast.error("Failed to update 2FA settings");
-    }
-  };
 
   return (
     <section ref={ref} id={id} className="space-y-6">
@@ -109,7 +91,7 @@ export const SecuritySection = React.forwardRef<
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold">Security</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Password, two-factor authentication, and account security
+            Password and account security
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -229,52 +211,6 @@ export const SecuritySection = React.forwardRef<
                   ? "Changing Password..."
                   : "Change Password"}
               </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Two-Factor Authentication */}
-          <div className="space-y-4">
-            <h4 className="flex items-center gap-2 font-medium">
-              <Smartphone className="h-4 w-4" />
-              Two-Factor Authentication
-            </h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Label>Enable 2FA</Label>
-                    <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
-                      {twoFactorEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    Use an authenticator app to generate verification codes
-                  </p>
-                </div>
-                <Switch
-                  checked={twoFactorEnabled}
-                  onCheckedChange={handleToggle2FA}
-                />
-              </div>
-
-              {twoFactorEnabled && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <Shield className="mt-0.5 h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Two-factor authentication is active
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Your account is protected with 2FA. You&apos;ll need
-                        your authenticator app to sign in.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

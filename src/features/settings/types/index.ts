@@ -1,8 +1,6 @@
 import { z } from "zod";
 
 // Enum schemas matching database enums
-export const unitsSchema = z.enum(["metric", "imperial"]);
-export const oneRmFormulaSchema = z.enum(["epley", "brzycki"]);
 export const defaultWorkoutViewSchema = z.enum(["last", "empty", "list"]);
 export const chartMetricSchema = z.enum([
   "total_volume",
@@ -19,16 +17,8 @@ export const visibilitySchema = z.enum(["public", "followers", "private"]);
 
 // User Settings schema
 export const userSettingsSchema = z.object({
-  units: unitsSchema.default("metric"),
-  barWeight: z.number().min(0).max(100).default(20),
-  platePairs: z.array(z.number().positive()).optional(),
-  roundingIncrement: z.number().positive().default(2.5),
-  oneRmFormula: oneRmFormulaSchema.default("epley"),
   restTimerEnabled: z.boolean().default(true),
   restTimerSeconds: z.number().int().min(30).max(600).default(120),
-  autoProgressionEnabled: z.boolean().default(false),
-  autoProgressionStep: z.number().positive().default(2.5),
-  warmupPreset: z.string().default("40-60-75-90"),
   defaultWorkoutView: defaultWorkoutViewSchema.default("last"),
   quickStartDefaultSplit: z.string().optional(),
 
@@ -120,8 +110,6 @@ export const exerciseAliasSchema = z.object({
 });
 
 // TypeScript types derived from schemas
-export type Units = z.infer<typeof unitsSchema>;
-export type OneRmFormula = z.infer<typeof oneRmFormulaSchema>;
 export type DefaultWorkoutView = z.infer<typeof defaultWorkoutViewSchema>;
 export type ChartMetric = z.infer<typeof chartMetricSchema>;
 export type ChartRange = z.infer<typeof chartRangeSchema>;

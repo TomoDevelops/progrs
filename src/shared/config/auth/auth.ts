@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP, username } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
-import { Resend } from "resend";
+
 
 import { getDb } from "@/shared/db/database";
 import {
@@ -13,6 +13,7 @@ import {
   verification,
 } from "@/shared/db/schema/auth-schema";
 import { getEnv } from "@/shared/env";
+import { sendEmail } from "@/shared/lib/email";
 
 let _auth: ReturnType<typeof betterAuth> | undefined;
 
@@ -21,42 +22,32 @@ export function getAuth() {
 
   const env = getEnv();
   const db = getDb();
-  const resend = new Resend(env.RESEND_API_KEY!);
 
   const plugins = [
     username(),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
-        const subject =
-          type === "sign-in"
-            ? "Sign in to your account"
-            : type === "email-verification"
-              ? "Verify your email address"
-              : "Reset your password";
+        let emailType: "otp-signin" | "otp-email-verification" | "otp-password-reset";
+        
+        switch (type) {
+          case "sign-in":
+            emailType = "otp-signin";
+            break;
+          case "email-verification":
+            emailType = "otp-email-verification";
+            break;
+          default:
+            emailType = "otp-password-reset";
+            break;
+        }
 
-        const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>Your verification code</h2>
-              <p>Use this code to ${
-                type === "sign-in"
-                  ? "sign in"
-                  : type === "email-verification"
-                    ? "verify your email"
-                    : "reset your password"
-              }:</p>
-              <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 20px 0;">
-                ${otp}
-              </div>
-              <p>This code will expire in 5 minutes.</p>
-              <p>If you didn't request this code, please ignore this email.</p>
-            </div>
-          `;
-
-        await resend.emails.send({
-          from: env.EMAIL_FROM!,
+        await sendEmail({
           to: email,
-          subject,
-          html,
+          type: emailType,
+          data: {
+            otp,
+            expirationMinutes: 5,
+          },
         });
       },
     }),
@@ -94,6 +85,23 @@ export function getAuth() {
     user: {
       deleteUser: {
         enabled: true,
+      },
+      changeEmail: {
+        enabled: true,
+        sendChangeEmailVerification: async (
+          { user, newEmail, url, token },
+        ) => {
+          await sendEmail({
+            to: user.email,
+            type: "email-change-verification",
+            data: {
+               currentEmail: user.email,
+               newEmail,
+               verificationUrl: url,
+               token,
+             },
+          });
+        },
       },
     },
     plugins: [...plugins],

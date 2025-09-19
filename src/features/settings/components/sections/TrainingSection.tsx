@@ -10,17 +10,9 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
+
 import { Switch } from "@/shared/components/ui/switch";
-import { Separator } from "@/shared/components/ui/separator";
-import { Badge } from "@/shared/components/ui/badge";
-import { Save, Loader2, Plus, X } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   UserSettings,
@@ -28,16 +20,8 @@ import type {
 } from "@/features/settings/types";
 
 interface TrainingFormData {
-  units: "metric" | "imperial";
-  barWeight: number;
-  platePairs: number[];
-  roundingIncrement: number;
-  oneRmFormula: "epley" | "brzycki";
   restTimerEnabled: boolean;
   restTimerSeconds: number;
-  autoProgressionEnabled: boolean;
-  autoProgressionStep: number;
-  warmupPreset: string;
 }
 
 interface TrainingSectionProps {
@@ -50,18 +34,9 @@ export const TrainingSection = React.forwardRef<
   TrainingSectionProps
 >(({ id }, ref) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [newPlateWeight, setNewPlateWeight] = useState("");
   const [formData, setFormData] = useState<TrainingFormData>({
-    units: "metric",
-    barWeight: 20,
-    platePairs: [25, 20, 15, 10, 5, 2.5, 1.25],
-    roundingIncrement: 2.5,
-    oneRmFormula: "epley",
     restTimerEnabled: true,
     restTimerSeconds: 120,
-    autoProgressionEnabled: false,
-    autoProgressionStep: 2.5,
-    warmupPreset: "40-60-75-90",
   });
   const queryClient = useQueryClient();
 
@@ -81,16 +56,8 @@ export const TrainingSection = React.forwardRef<
   React.useEffect(() => {
     if (settings) {
       setFormData({
-        units: settings.units,
-        barWeight: settings.barWeight,
-        platePairs: settings.platePairs || [25, 20, 15, 10, 5, 2.5, 1.25],
-        roundingIncrement: settings.roundingIncrement,
-        oneRmFormula: settings.oneRmFormula,
         restTimerEnabled: settings.restTimerEnabled,
         restTimerSeconds: settings.restTimerSeconds,
-        autoProgressionEnabled: settings.autoProgressionEnabled,
-        autoProgressionStep: settings.autoProgressionStep,
-        warmupPreset: settings.warmupPreset,
       });
     }
   }, [settings]);
@@ -119,38 +86,14 @@ export const TrainingSection = React.forwardRef<
   const handleCancel = () => {
     if (settings) {
       setFormData({
-        units: settings.units,
-        barWeight: settings.barWeight,
-        platePairs: settings.platePairs || [25, 20, 15, 10, 5, 2.5, 1.25],
-        roundingIncrement: settings.roundingIncrement,
-        oneRmFormula: settings.oneRmFormula,
         restTimerEnabled: settings.restTimerEnabled,
         restTimerSeconds: settings.restTimerSeconds,
-        autoProgressionEnabled: settings.autoProgressionEnabled,
-        autoProgressionStep: settings.autoProgressionStep,
-        warmupPreset: settings.warmupPreset,
       });
     }
     setIsEditing(false);
   };
 
-  const addPlate = () => {
-    const weight = parseFloat(newPlateWeight);
-    if (weight > 0 && !formData.platePairs.includes(weight)) {
-      setFormData({
-        ...formData,
-        platePairs: [...formData.platePairs, weight].sort((a, b) => b - a),
-      });
-      setNewPlateWeight("");
-    }
-  };
 
-  const removePlate = (weight: number) => {
-    setFormData({
-      ...formData,
-      platePairs: formData.platePairs.filter((p) => p !== weight),
-    });
-  };
 
   if (isLoading) {
     return (
@@ -178,7 +121,7 @@ export const TrainingSection = React.forwardRef<
               Training Preferences
             </CardTitle>
             <p className="text-muted-foreground text-sm">
-              Units, equipment, and workout settings
+              Rest timer settings
             </p>
           </div>
           <div className="flex gap-2">
@@ -213,116 +156,6 @@ export const TrainingSection = React.forwardRef<
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Units & Equipment */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Units & Equipment</h4>
-            <div className="space-y-2">
-              <Label>Units</Label>
-              <Select
-                value={formData.units}
-                onValueChange={(value: "metric" | "imperial") =>
-                  setFormData({ ...formData, units: value })
-                }
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="metric">Metric (kg)</SelectItem>
-                  <SelectItem value="imperial">Imperial (lbs)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Bar Weight & Plates */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="barWeight">
-                    Bar Weight ({formData.units === "metric" ? "kg" : "lbs"})
-                  </Label>
-                  <Input
-                    id="barWeight"
-                    type="number"
-                    step="0.25"
-                    value={formData.barWeight}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        barWeight: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="roundingIncrement">
-                    Rounding Increment (
-                    {formData.units === "metric" ? "kg" : "lbs"})
-                  </Label>
-                  <Input
-                    id="roundingIncrement"
-                    type="number"
-                    step="0.25"
-                    value={formData.roundingIncrement}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        roundingIncrement: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Available Plates ({formData.units === "metric" ? "kg" : "lbs"}
-                  )
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {formData.platePairs.map((weight) => (
-                    <Badge
-                      key={weight}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {weight}
-                      {isEditing && (
-                        <button
-                          onClick={() => removePlate(weight)}
-                          className="hover:text-destructive ml-1"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add plate weight"
-                      type="number"
-                      step="0.25"
-                      value={newPlateWeight}
-                      onChange={(e) => setNewPlateWeight(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addPlate()}
-                      className="max-w-32"
-                    />
-                    <Button size="sm" variant="outline" onClick={addPlate}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Rest Timer */}
           <div className="space-y-4">
             <h4 className="font-medium">Rest Timer</h4>

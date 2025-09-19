@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Shield, Key, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Key, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface SecuritySectionProps {

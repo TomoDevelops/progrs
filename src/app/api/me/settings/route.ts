@@ -43,16 +43,8 @@ export async function GET(request: NextRequest) {
       ? {
           ...defaultSettings,
           ...settings,
-          barWeight: parseFloat(settings.barWeight as string),
-          roundingIncrement: parseFloat(settings.roundingIncrement as string),
-          autoProgressionStep: parseFloat(
-            settings.autoProgressionStep as string,
-          ),
           quickStartDefaultSplit: settings.quickStartDefaultSplit || undefined,
           language: settings.language || undefined,
-          platePairs: settings.platePairs
-            ? JSON.parse(settings.platePairs as string)
-            : defaultSettings.platePairs,
         }
       : defaultSettings;
 
@@ -101,15 +93,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const validatedData = userSettingsUpdateSchema.parse(body);
 
-    // Prepare data for database (serialize platePairs and convert numbers to strings)
+    // Prepare data for database
     const dbData = {
       ...validatedData,
-      barWeight: validatedData.barWeight?.toString(),
-      roundingIncrement: validatedData.roundingIncrement?.toString(),
-      autoProgressionStep: validatedData.autoProgressionStep?.toString(),
-      platePairs: validatedData.platePairs
-        ? JSON.stringify(validatedData.platePairs)
-        : undefined,
       updatedAt: new Date(),
     };
 
@@ -142,19 +128,9 @@ export async function PUT(request: NextRequest) {
     // Parse the response data
     const responseData = {
       ...updatedSettings,
-      barWeight: parseFloat(updatedSettings.barWeight as string),
-      roundingIncrement: parseFloat(
-        updatedSettings.roundingIncrement as string,
-      ),
-      autoProgressionStep: parseFloat(
-        updatedSettings.autoProgressionStep as string,
-      ),
       quickStartDefaultSplit:
         updatedSettings.quickStartDefaultSplit || undefined,
       language: updatedSettings.language || undefined,
-      platePairs: updatedSettings.platePairs
-        ? JSON.parse(updatedSettings.platePairs as string)
-        : null,
     };
 
     const response: ApiSuccessResponse<UserSettings> = {

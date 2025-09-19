@@ -8,7 +8,6 @@ import {
   date,
   index,
   pgEnum,
-  jsonb,
   time,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -228,8 +227,6 @@ export const bodyMetrics = pgTable(
 );
 
 // Settings-related enums
-export const unitsEnum = pgEnum("units", ["metric", "imperial"]);
-export const oneRmFormulaEnum = pgEnum("one_rm_formula", ["epley", "brzycki"]);
 export const defaultWorkoutViewEnum = pgEnum("default_workout_view", [
   "last",
   "empty",
@@ -260,27 +257,8 @@ export const userSettings = pgTable("user_settings", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
-  units: unitsEnum("units").default("metric").notNull(),
-  barWeight: decimal("bar_weight", { precision: 5, scale: 2 })
-    .default("20.00")
-    .notNull(),
-  platePairs: jsonb("plate_pairs"), // [25,20,15,10,5,2.5,1.25]
-  roundingIncrement: decimal("rounding_increment", { precision: 4, scale: 2 })
-    .default("2.50")
-    .notNull(),
-  oneRmFormula: oneRmFormulaEnum("one_rm_formula").default("epley").notNull(),
   restTimerEnabled: boolean("rest_timer_enabled").default(true).notNull(),
   restTimerSeconds: integer("rest_timer_seconds").default(120).notNull(),
-  autoProgressionEnabled: boolean("auto_progression_enabled")
-    .default(false)
-    .notNull(),
-  autoProgressionStep: decimal("auto_progression_step", {
-    precision: 4,
-    scale: 2,
-  })
-    .default("2.50")
-    .notNull(),
-  warmupPreset: text("warmup_preset").default("40-60-75-90").notNull(),
   defaultWorkoutView: defaultWorkoutViewEnum("default_workout_view")
     .default("last")
     .notNull(),

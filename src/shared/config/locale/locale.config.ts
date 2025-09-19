@@ -49,7 +49,6 @@ export const SUPPORTED_LOCALES = {
     timeFormat: "24h",
     firstDayOfWeek: 1, // Monday
   },
-
 } as const;
 
 export type SupportedLocaleCode = keyof typeof SUPPORTED_LOCALES;
@@ -58,42 +57,36 @@ export type LocaleConfig = (typeof SUPPORTED_LOCALES)[SupportedLocaleCode];
 // Default locale
 export const DEFAULT_LOCALE: SupportedLocaleCode = "en-US";
 
-// Storage key for user locale preference
-const LOCALE_STORAGE_KEY = "user-locale-preference";
-
 /**
  * Detects user's preferred locale from various sources
  * Priority: localStorage > navigator.language > default
  */
+const LOCALE_STORAGE_KEY = "user-locale-preference";
+
 export function detectUserLocale(): SupportedLocaleCode {
-  // Check localStorage first
+  // Client-only stored preference
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(
       LOCALE_STORAGE_KEY,
-    ) as SupportedLocaleCode;
-    if (stored && stored in SUPPORTED_LOCALES) {
-      return stored;
-    }
+    ) as SupportedLocaleCode | null;
+    if (stored && stored in SUPPORTED_LOCALES) return stored;
   }
 
-  // Check browser language
+  // Client-only browser language (guard that it's a string)
   if (typeof navigator !== "undefined") {
-    const browserLang = navigator.language;
+    const browserLang =
+      typeof navigator.language === "string" ? navigator.language : "";
 
-    // Exact match
-    if (browserLang in SUPPORTED_LOCALES) {
+    if (browserLang && browserLang in SUPPORTED_LOCALES) {
       return browserLang as SupportedLocaleCode;
     }
 
-    // Language code match (e.g., 'en' matches 'en-US')
-    const langCode = browserLang.split("-")[0];
-    const matchingLocale = Object.keys(SUPPORTED_LOCALES).find((locale) =>
-      locale.startsWith(langCode),
-    ) as SupportedLocaleCode;
+    const langCode = browserLang ? browserLang.split("-")[0] : "";
+    const matchingLocale = (
+      Object.keys(SUPPORTED_LOCALES) as SupportedLocaleCode[]
+    ).find((locale) => langCode && locale.startsWith(langCode));
 
-    if (matchingLocale) {
-      return matchingLocale;
-    }
+    if (matchingLocale) return matchingLocale;
   }
 
   return DEFAULT_LOCALE;
@@ -114,8 +107,6 @@ export function storeUserLocale(locale: SupportedLocaleCode): void {
 export function getLocaleConfig(locale: SupportedLocaleCode): LocaleConfig {
   return SUPPORTED_LOCALES[locale];
 }
-
-
 
 /**
  * Gets the first day of week for a locale (0 = Sunday, 1 = Monday, etc.)

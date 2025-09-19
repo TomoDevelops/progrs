@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
-import { db } from "@/shared/db/database";
+import { getAuth } from "@/shared/config/auth/auth";
+import { getDb } from "@/shared/db/database";
 import { workoutReminders } from "@/shared/db/schema/app-schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -12,6 +12,8 @@ import type { WorkoutReminder } from "@/features/settings/types";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET() {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
@@ -58,6 +60,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
@@ -121,6 +125,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({

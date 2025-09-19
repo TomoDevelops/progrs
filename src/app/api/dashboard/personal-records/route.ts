@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { dashboardRepository } from "@/app/api/dashboard/repository/dashboard.repository";
 import { z } from "zod";
@@ -16,6 +16,7 @@ const personalRecordsQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
-import { db } from "@/shared/db/database";
+import { getAuth } from "@/shared/config/auth/auth";
+import { getDb } from "@/shared/db/database";
 import { workoutReminders } from "@/shared/db/schema/app-schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -10,6 +10,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { dashboardService } from "@/app/api/dashboard/services/dashboard.service";
 import { ConsistencyQuerySchema } from "@/app/api/dashboard/schemas/dashboard.schemas";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({

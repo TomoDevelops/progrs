@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
-import { db } from "@/shared/db/database";
+import { getAuth } from "@/shared/config/auth/auth";
+import { getDb } from "@/shared/db/database";
 import { dataExports } from "@/shared/db/schema/app-schema";
 import { eq } from "drizzle-orm";
 import { dataExportSchema } from "@/features/settings/types";
@@ -8,6 +8,8 @@ import type { DataExportJob } from "@/features/settings/types";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({
@@ -62,6 +64,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session from better-auth
     const session = await auth.api.getSession({

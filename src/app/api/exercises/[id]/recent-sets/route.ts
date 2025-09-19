@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   exerciseSets,
   sessionExercises,
   workoutSessions,
 } from "@/shared/db/schema/app-schema";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, and, desc } from "drizzle-orm";
 
@@ -13,6 +13,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

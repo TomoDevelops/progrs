@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutSessions,
   sessionExercises,
@@ -7,7 +7,7 @@ import {
   routineExercises,
   exercises,
 } from "@/shared/db/schema/app-schema";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -48,6 +48,8 @@ const repeatSessionSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({

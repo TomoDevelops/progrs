@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
-import { db } from "@/shared/db/database";
+import { getAuth } from "@/shared/config/auth/auth";
+import { getDb } from "@/shared/db/database";
 import { workoutSessions } from "@/shared/db/schema/app-schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 
 export async function GET() {
+  const db = getDb();
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

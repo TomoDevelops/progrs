@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { progressRepository } from "./repository/progress.repository";
 import { z } from "zod";
@@ -11,6 +11,7 @@ const progressQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

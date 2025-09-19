@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import type { auth } from "@/shared/config/auth/auth";
+import type { AuthInstance } from "@/shared/config/auth/auth";
 import {
   inferAdditionalFields,
   oneTapClient,
@@ -11,7 +11,7 @@ import {
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
   plugins: [
-    inferAdditionalFields<typeof auth>(),
+    inferAdditionalFields<AuthInstance>(),
     oneTapClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
     }),

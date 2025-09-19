@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutSessions,
   sessionExercises,
@@ -8,7 +8,7 @@ import {
   workoutRoutines,
   routineExercises,
 } from "@/shared/db/schema/app-schema";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -22,6 +22,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({
@@ -221,6 +223,8 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({

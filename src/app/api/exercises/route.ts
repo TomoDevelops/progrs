@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import { exercises } from "@/shared/db/schema/app-schema";
 import { ilike, or, eq, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
+  const db = getDb();
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");

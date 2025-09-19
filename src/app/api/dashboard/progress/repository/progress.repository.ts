@@ -1,4 +1,4 @@
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutSessions,
   sessionExercises,
@@ -26,6 +26,7 @@ export class ProgressRepository {
     userId: string,
     timeframe: string,
   ): Promise<string | null> {
+    const db = getDb();
     const dateRange = this.getDateRange(timeframe);
 
     const result = await db
@@ -64,6 +65,7 @@ export class ProgressRepository {
     timeframe: string,
     metric: "weight" | "reps" | "volume",
   ): Promise<ProgressDataPoint[]> {
+    const db = getDb();
     const dateRange = this.getDateRange(timeframe);
 
     let selectClause;
@@ -123,6 +125,7 @@ export class ProgressRepository {
   }
 
   async getExerciseInfo(exerciseId: string): Promise<ExerciseInfo | null> {
+    const db = getDb();
     const result = await db
       .select({
         id: exercises.id,
@@ -141,6 +144,7 @@ export class ProgressRepository {
     userId: string,
     limit: number = 5,
   ): Promise<ExerciseInfo[]> {
+    const db = getDb();
     const result = await db
       .select({
         id: exercises.id,
@@ -187,6 +191,7 @@ export class ProgressRepository {
     offset: number = 0,
     limit: number = 20,
   ): Promise<{ exercises: ExerciseInfo[]; total: number }> {
+    const db = getDb();
     const whereConditions = [
       eq(workoutSessions.userId, userId),
       sql`${workoutSessions.endedAt} IS NOT NULL`,

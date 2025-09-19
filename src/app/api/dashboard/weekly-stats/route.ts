@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { dashboardRepository } from "@/app/api/dashboard/repository/dashboard.repository";
 import { headers } from "next/headers";
 
 export async function GET() {
+  const auth = getAuth();
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

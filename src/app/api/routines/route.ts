@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutRoutines,
   routineExercises,
   routineSchedule,
 } from "@/shared/db/schema/app-schema";
 import { workoutRoutineSchema } from "@/features/workout-routines/types";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, desc } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({
@@ -127,6 +129,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  const db = getDb();
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({

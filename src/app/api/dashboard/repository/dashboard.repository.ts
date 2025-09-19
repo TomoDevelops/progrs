@@ -1,4 +1,4 @@
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutRoutines,
   routineSchedule,
@@ -95,6 +95,7 @@ export interface WorkoutSessionDetail {
 
 export class DashboardRepository {
   async getTodayPlannedWorkouts(userId: string): Promise<TodayWorkoutData[]> {
+    const db = getDb();
     const today = getTodayUTC(); // Get today's date in UTC
 
     // Get today's scheduled routines
@@ -207,6 +208,7 @@ export class DashboardRepository {
     limit: number = 10,
     offset: number = 0,
   ): Promise<WorkoutHistoryItem[]> {
+    const db = getDb();
     // Only get completed workout sessions
     const sessions = await db
       .select({
@@ -277,6 +279,7 @@ export class DashboardRepository {
     days: number = 30,
   ): Promise<ConsistencyData[]> {
     const { startDate, endDate } = getUTCDateRange(days);
+    const db = getDb();
 
     const consistencyData = await db
       .select({
@@ -302,6 +305,7 @@ export class DashboardRepository {
     userId: string,
     limit: number = 5,
   ): Promise<TrendingMetric[]> {
+    const db = getDb();
     // Get recent personal records with improvements
     const recentRecords = await db
       .select({
@@ -328,6 +332,7 @@ export class DashboardRepository {
   }
 
   async getSummaryStats(userId: string): Promise<SummaryStats> {
+    const db = getDb();
     // Get basic workout stats
     const workoutStats = await db
       .select({
@@ -399,6 +404,7 @@ export class DashboardRepository {
     userId: string,
     sessionId: string,
   ): Promise<WorkoutSessionDetail | null> {
+    const db = getDb();
     // Get the workout session
     const session = await db
       .select({
@@ -487,6 +493,7 @@ export class DashboardRepository {
     limit: number = 10,
     days: number = 30,
   ): Promise<PersonalRecord[]> {
+    const db = getDb();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -521,6 +528,7 @@ export class DashboardRepository {
     userId: string,
     weekOffset: number = 0,
   ): Promise<WeeklyStats> {
+    const db = getDb();
     // Calculate the start and end of the target week
     const now = new Date();
     const currentWeekStart = new Date(now);

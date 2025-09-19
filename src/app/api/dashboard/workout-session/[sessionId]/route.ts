@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { dashboardRepository } from "@/app/api/dashboard/repository/dashboard.repository";
 
@@ -7,6 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({

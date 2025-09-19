@@ -8,6 +8,15 @@ RUN bun install --frozen-lockfile
 
 # Copy source code and build
 COPY . .
+
+# Declare build args
+ARG NEXT_PUBLIC_BETTER_AUTH_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+# Make them available to Next.js build
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+
 RUN bun run build
 
 # Production stage

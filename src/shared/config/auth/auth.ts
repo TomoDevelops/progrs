@@ -50,7 +50,7 @@ export function getAuth() {
       line: {
         clientId: env.LINE_CLIENT_ID,
         clientSecret: env.LINE_CLIENT_SECRET,
-        scope: ["openid", "profile"], // fixed typo ("openid")
+        scope: ["openid", "profile"],
       },
     },
 

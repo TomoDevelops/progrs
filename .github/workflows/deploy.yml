@@ -9,7 +9,10 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
+    environment:
+      name: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +32,11 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/progrs:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/progrs:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+          build-args: |
+            NEXT_PUBLIC_BETTER_AUTH_URL=${{ vars.NEXT_PUBLIC_BETTER_AUTH_URL }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}

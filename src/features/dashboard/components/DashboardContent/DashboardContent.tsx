@@ -40,6 +40,7 @@ import { WorkoutHistoryEmpty } from "@/features/dashboard/components/WorkoutHist
 import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton";
 import { ErrorBoundary } from "@/features/dashboard/components/ErrorBoundary";
 import { DashboardErrorFallback } from "@/features/dashboard/components/DashboardErrorFallback";
+import { ErrorState } from "@/shared/components/ErrorState";
 
 interface DashboardContentProps {
   dashboardState: UseDashboardReturn;
@@ -158,14 +159,10 @@ export const DashboardContent = ({ dashboardState }: DashboardContentProps) => {
   if (isError) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-red-600">
-            Error loading dashboard
-          </h2>
-          <p className="text-sm text-gray-600">
-            {error?.message || "Something went wrong"}
-          </p>
-        </div>
+        <ErrorState
+          title="Error loading dashboard"
+          message={error?.message || "Something went wrong"}
+        />
       </div>
     );
   }

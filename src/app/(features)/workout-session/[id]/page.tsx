@@ -3,7 +3,8 @@
 import { useParams } from "next/navigation";
 import { WorkoutSessionContent } from "@/features/workout-session/components/WorkoutSessionContent";
 import { useWorkoutSession } from "@/features/workout-session/hooks/useWorkoutSession";
-import { Loader2 } from "lucide-react";
+import { LoadingState } from "@/shared/components/LoadingState";
+import { ErrorState } from "@/shared/components/ErrorState";
 
 export default function WorkoutSessionPage() {
   const params = useParams();
@@ -22,36 +23,31 @@ export default function WorkoutSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Loading workout session...</p>
-        </div>
-      </div>
+      <LoadingState 
+        message="Loading workout session..." 
+        fullScreen 
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="mb-2 text-2xl font-bold text-red-600">Error</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
+      <ErrorState 
+        title="Error Loading Session"
+        message={error}
+        fullScreen
+        variant="destructive"
+      />
     );
   }
 
   if (!session) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="mb-2 text-2xl font-bold">Session Not Found</h1>
-          <p className="text-muted-foreground">
-            The workout session could not be found.
-          </p>
-        </div>
-      </div>
+      <ErrorState 
+        title="Session Not Found"
+        message="The workout session could not be found."
+        fullScreen
+      />
     );
   }
 

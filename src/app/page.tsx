@@ -1,3 +1,7 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getAuth } from "@/shared/config/auth/auth";

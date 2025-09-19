@@ -11,16 +11,15 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
-import { Switch } from "@/shared/components/ui/switch";
-import { Badge } from "@/shared/components/ui/badge";
 import {
-  Shield,
-  Key,
-  Smartphone,
-  Eye,
-  EyeOff,
-  AlertTriangle,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Key, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface SecuritySectionProps {
@@ -40,8 +39,11 @@ export const SecuritySection = React.forwardRef<
     newPassword: "",
     confirmPassword: "",
   });
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -85,21 +87,40 @@ export const SecuritySection = React.forwardRef<
     }
   };
 
-  const handleToggle2FA = async () => {
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      toast.error("Please enter your password to confirm account deletion");
+      return;
+    }
+
+    setIsDeleting(true);
+
     try {
-      const response = await fetch("/api/me/2fa", {
-        method: twoFactorEnabled ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch("/api/me/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password: deletePassword,
+          confirmDeletion: true,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update 2FA settings");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete account");
       }
 
-      setTwoFactorEnabled(!twoFactorEnabled);
-      toast.success(twoFactorEnabled ? "2FA disabled" : "2FA enabled");
-    } catch {
-      toast.error("Failed to update 2FA settings");
+      toast.success("Account deleted successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account",
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setDeletePassword("");
     }
   };
 
@@ -109,7 +130,7 @@ export const SecuritySection = React.forwardRef<
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold">Security</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Password, two-factor authentication, and account security
+            Password and account security
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -234,108 +255,89 @@ export const SecuritySection = React.forwardRef<
 
           <Separator />
 
-          {/* Two-Factor Authentication */}
-          <div className="space-y-4">
-            <h4 className="flex items-center gap-2 font-medium">
-              <Smartphone className="h-4 w-4" />
-              Two-Factor Authentication
-            </h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Label>Enable 2FA</Label>
-                    <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
-                      {twoFactorEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    Use an authenticator app to generate verification codes
-                  </p>
-                </div>
-                <Switch
-                  checked={twoFactorEnabled}
-                  onCheckedChange={handleToggle2FA}
-                />
-              </div>
-
-              {twoFactorEnabled && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <Shield className="mt-0.5 h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Two-factor authentication is active
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Your account is protected with 2FA. You&apos;ll need
-                        your authenticator app to sign in.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Account Security */}
           <div className="space-y-4">
-            <h4 className="flex items-center gap-2 font-medium">
-              <Shield className="h-4 w-4" />
-              Account Security
-            </h4>
             <div className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">Active Sessions</p>
-                    <p className="text-muted-foreground text-sm">
-                      Manage devices signed into your account
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View Sessions
+              <div className="border-destructive/20 bg-destructive/5 flex items-start gap-3 rounded-lg border p-3">
+                <AlertTriangle className="text-destructive mt-0.5 h-5 w-5" />
+                <div className="flex-1">
+                  <p className="text-destructive font-medium">Delete Account</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Permanently delete your account and all associated data.
+                    This action cannot be undone.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    Delete Account
                   </Button>
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">Login History</p>
-                    <p className="text-muted-foreground text-sm">
-                      Review recent sign-in activity
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View History
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="border-destructive/20 bg-destructive/5 flex items-start gap-3 rounded-lg border p-3">
-                  <AlertTriangle className="text-destructive mt-0.5 h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="text-destructive font-medium">
-                      Delete Account
-                    </p>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      Permanently delete your account and all associated data.
-                      This action cannot be undone.
-                    </p>
-                    <Button variant="destructive" size="sm" className="mt-3">
-                      Delete Account
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Account</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove all your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="delete-password"
+                  type={showDeletePassword ? "text" : "password"}
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Enter your password to confirm"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                >
+                  {showDeletePassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeletePassword("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={!deletePassword || isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 });

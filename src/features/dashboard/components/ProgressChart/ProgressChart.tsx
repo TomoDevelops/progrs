@@ -26,6 +26,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { useProgressData } from "@/features/dashboard/hooks/useProgressData";
+import { useUserSettings } from "@/shared/hooks/useUserSettings";
 import { ExerciseSelector } from "./ExerciseSelector";
 import { ProgressChartSkeleton } from "./ProgressChartSkeleton";
 import { EmptyProgressChart } from "./EmptyProgressChart";
@@ -49,12 +50,49 @@ const METRIC_LABELS = {
   volume: "Volume (kg)",
 } as const;
 
+// Helper functions outside component to avoid dependency issues
+const getDefaultTimeframe = (chartDefaultRange?: string): "2W" | "8W" | "6M" | "1Y" => {
+  const range = chartDefaultRange || "8w";
+  return range.toUpperCase() as "2W" | "8W" | "6M" | "1Y";
+};
+
+const getDefaultMetric = (chartDefaultMetric?: string): "weight" | "reps" | "volume" => {
+  const metric = chartDefaultMetric || "total_volume";
+  switch (metric) {
+    case "one_rm":
+      return "weight";
+    case "total_volume":
+      return "volume";
+    case "duration":
+      return "volume"; // Fallback to volume for duration
+    case "body_weight":
+      return "weight";
+    default:
+      return "volume";
+  }
+};
+
 export const ProgressChart = () => {
+  const { data: userSettings } = useUserSettings();
+  
   const [selectedExerciseId, setSelectedExerciseId] = useState<
     string | undefined
   >();
-  const [timeframe, setTimeframe] = useState<"2W" | "8W" | "6M" | "1Y">("8W");
-  const [metric, setMetric] = useState<"weight" | "reps" | "volume">("volume"); // Default to Total volume
+  
+  const [timeframe, setTimeframe] = useState<"2W" | "8W" | "6M" | "1Y">(() => 
+    getDefaultTimeframe(userSettings?.chartDefaultRange)
+  );
+  const [metric, setMetric] = useState<"weight" | "reps" | "volume">(() => 
+    getDefaultMetric(userSettings?.chartDefaultMetric)
+  );
+  
+  // Update defaults when user settings change
+  useEffect(() => {
+    if (userSettings) {
+      setTimeframe(getDefaultTimeframe(userSettings.chartDefaultRange));
+      setMetric(getDefaultMetric(userSettings.chartDefaultMetric));
+    }
+  }, [userSettings]);
 
   const {
     data: progressData,

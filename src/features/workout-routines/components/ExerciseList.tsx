@@ -8,6 +8,7 @@ import {
   DraggableExerciseList,
   type DraggableExercise,
 } from "@/shared/components/DraggableExerciseList";
+import { useUserSettings } from "@/shared/hooks/useUserSettings";
 
 interface ExerciseListProps {
   form: UseFormReturn<WorkoutRoutine>;
@@ -40,6 +41,7 @@ export function ExerciseList({
   selectedExercises,
   setSelectedExercises,
 }: ExerciseListProps) {
+  const { data: userSettings } = useUserSettings();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "exercises",
@@ -61,7 +63,7 @@ export function ExerciseList({
       minReps: 8,
       maxReps: 12,
       targetWeight: undefined,
-      restTime: 60,
+      restTime: userSettings?.restTimerSeconds || 60,
       notes: "",
     });
   };

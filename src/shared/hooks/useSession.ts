@@ -11,7 +11,6 @@ interface UserData {
   email: string;
   username?: string;
   emailVerified: boolean;
-  twoFactorEnabled: boolean;
 }
 
 interface SessionData {

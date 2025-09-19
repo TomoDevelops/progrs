@@ -15,7 +15,15 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/shared/components/ui/avatar";
-import { Camera, Save, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Camera, Save, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, ProfileUpdateData } from "@/features/settings/types";
@@ -24,6 +32,11 @@ interface ProfileFormData {
   name: string;
   email: string;
   username: string;
+}
+
+interface EmailChangeData {
+  newEmail: string;
+  password: string;
 }
 
 interface ProfileSectionProps {
@@ -36,6 +49,11 @@ export const ProfileSection = React.forwardRef<
   ProfileSectionProps
 >(({ id }, ref) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailChangeData, setEmailChangeData] = useState<EmailChangeData>({
+    newEmail: "",
+    password: "",
+  });
   const [formData, setFormData] = useState<ProfileFormData>({
     name: "",
     email: "",
@@ -95,12 +113,56 @@ export const ProfileSection = React.forwardRef<
     },
   });
 
+  // Change email mutation
+  const changeEmailMutation = useMutation({
+    mutationFn: async (data: EmailChangeData) => {
+      const response = await fetch("/api/me/change-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Failed to change email");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      setIsEmailDialogOpen(false);
+      setEmailChangeData({ newEmail: "", password: "" });
+      toast.success(
+        "Email change initiated. Please check your new email for verification.",
+      );
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to change email",
+      );
+    },
+  });
+
   const handleSave = () => {
+    // Only update name and username, not email
     updateProfileMutation.mutate({
       name: formData.name,
-      email: formData.email,
       username: formData.username,
     });
+  };
+
+  const handleEmailChange = () => {
+    if (!emailChangeData.newEmail || !emailChangeData.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    changeEmailMutation.mutate(emailChangeData);
+  };
+
+  const openEmailDialog = () => {
+    setEmailChangeData({ newEmail: formData.email, password: "" });
+    setIsEmailDialogOpen(true);
   };
 
   const handleCancel = () => {
@@ -159,21 +221,21 @@ export const ProfileSection = React.forwardRef<
                   {profile?.username?.[0] || ""}
                 </AvatarFallback>
               </Avatar>
-              <Button
+              {/* <Button
                 size="sm"
                 variant="outline"
                 className="absolute -right-2 -bottom-2 h-8 w-8 rounded-full p-0"
                 onClick={handleAvatarUpload}
               >
                 <Camera className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
             <div>
               <h3 className="text-lg font-medium">{profile?.name || "User"}</h3>
               <p className="text-sm text-gray-600">
                 @{profile?.username || "username"}
               </p>
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="mt-2"
@@ -181,7 +243,7 @@ export const ProfileSection = React.forwardRef<
               >
                 <Camera className="mr-2 h-4 w-4" />
                 Change Avatar
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -211,15 +273,24 @@ export const ProfileSection = React.forwardRef<
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                disabled={!isEditing}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  disabled={true}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openEmailDialog}
+                  className="shrink-0"
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Change
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -253,6 +324,73 @@ export const ProfileSection = React.forwardRef<
           </div>
         </CardContent>
       </Card>
+
+      {/* Email Change Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Email Address</DialogTitle>
+            <DialogDescription>
+              Enter your new email address and current password to confirm the
+              change. You&apos;ll need to verify your new email address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">New Email Address</Label>
+              <Input
+                id="newEmail"
+                type="email"
+                value={emailChangeData.newEmail}
+                onChange={(e) =>
+                  setEmailChangeData({
+                    ...emailChangeData,
+                    newEmail: e.target.value,
+                  })
+                }
+                placeholder="Enter new email address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={emailChangeData.password}
+                onChange={(e) =>
+                  setEmailChangeData({
+                    ...emailChangeData,
+                    password: e.target.value,
+                  })
+                }
+                placeholder="Enter your current password"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEmailDialogOpen(false)}
+              disabled={changeEmailMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEmailChange}
+              disabled={changeEmailMutation.isPending}
+            >
+              {changeEmailMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Changing...
+                </>
+              ) : (
+                "Change Email"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 });

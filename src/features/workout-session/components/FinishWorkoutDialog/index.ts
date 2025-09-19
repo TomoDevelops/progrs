@@ -1,1 +1,1 @@
-export { FinishWorkoutDialog } from './FinishWorkoutDialog';
+export { FinishWorkoutDialog } from "./FinishWorkoutDialog";

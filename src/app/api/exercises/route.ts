@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import { exercises } from "@/shared/db/schema/app-schema";
 import { ilike, or, eq, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
+  const db = getDb();
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
@@ -18,15 +19,19 @@ export async function GET(request: NextRequest) {
         or(
           ilike(exercises.name, `%${search}%`),
           ilike(exercises.muscleGroup, `%${search}%`),
-          ilike(exercises.equipment, `%${search}%`)
-        )!
+          ilike(exercises.equipment, `%${search}%`),
+        )!,
       );
     }
 
     const results = await db
       .select()
       .from(exercises)
-      .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])
+      .where(
+        whereConditions.length > 1
+          ? and(...whereConditions)
+          : whereConditions[0],
+      )
       .limit(limit)
       .offset(offset);
 
@@ -41,13 +46,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching exercises:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

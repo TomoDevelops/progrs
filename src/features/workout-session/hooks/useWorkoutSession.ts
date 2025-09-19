@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useBeforeUnload } from "@/shared/hooks/useBeforeUnload";
 import type {
   WorkoutSession,
   UpdateSetData,
@@ -38,9 +39,10 @@ export function useWorkoutSession(sessionId: string) {
           endedAt: result.data.endedAt ? new Date(result.data.endedAt) : null,
         };
         setSession(sessionData);
-      } else {
-        setError(result.error || "Failed to fetch workout session");
+        return;
       }
+
+      setError(result.error || "Failed to fetch workout session");
     } catch (err) {
       console.error("Error fetching workout session:", err);
       setError("Failed to fetch workout session");
@@ -99,9 +101,10 @@ export function useWorkoutSession(sessionId: string) {
           });
 
           toast.success("Set recorded successfully!");
-        } else {
-          toast.error(result.error || "Failed to update set");
+          return;
         }
+
+        toast.error(result.error || "Failed to update set");
       } catch (err) {
         console.error("Error updating set:", err);
         toast.error("Failed to update set");
@@ -110,6 +113,58 @@ export function useWorkoutSession(sessionId: string) {
       }
     },
     [session],
+  );
+
+  // Reorder exercises
+  const reorderExercises = useCallback(
+    async (reorderedExercises: WorkoutSession["exercises"]) => {
+      if (!session) return;
+
+      try {
+        // Update local state optimistically
+        setSession((prevSession) => {
+          if (!prevSession) return prevSession;
+          return {
+            ...prevSession,
+            exercises: reorderedExercises,
+          };
+        });
+
+        // Prepare exercise orders for API
+        const exerciseOrders = reorderedExercises.map((exercise, index) => ({
+          sessionExerciseId: exercise.id,
+          orderIndex: index,
+        }));
+
+        // Send to server
+        const response = await fetch("/api/workout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "reorderExercises",
+            sessionId: session.id,
+            exerciseOrders,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          toast.success("Exercise order updated!");
+          return;
+        }
+
+        throw new Error(result.error || "Failed to reorder exercises");
+      } catch (err) {
+        console.error("Error reordering exercises:", err);
+        toast.error("Failed to reorder exercises");
+        // Revert the change by refetching
+        fetchSession();
+      }
+    },
+    [session, fetchSession],
   );
 
   // Finish session
@@ -144,10 +199,11 @@ export function useWorkoutSession(sessionId: string) {
 
           // Redirect to dashboard or workout summary
           router.push("/");
-        } else {
-          toast.error(result.error || "Failed to finish workout");
-          setIsFinishingWorkout(false); // Re-enable if there's an error
+          return;
         }
+
+        toast.error(result.error || "Failed to finish workout");
+        setIsFinishingWorkout(false); // Re-enable if there's an error
       } catch (err) {
         console.error("Error finishing workout:", err);
         toast.error("Failed to finish workout");
@@ -159,22 +215,12 @@ export function useWorkoutSession(sessionId: string) {
     [session, sessionId, router],
   );
 
-  // Navigation guard
-  useEffect(() => {
-    if (!session?.isActive || isFinishingWorkout) return;
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue =
-        "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [session?.isActive, isFinishingWorkout]);
+  // Navigation guard using custom hook
+  useBeforeUnload({
+    enabled: !!(session?.isActive && !isFinishingWorkout),
+    message:
+      "You have an active workout session. Leaving will keep your progress but you'll need to return to finish it. Are you sure you want to leave?",
+  });
 
   // Initial fetch
   useEffect(() => {
@@ -189,6 +235,7 @@ export function useWorkoutSession(sessionId: string) {
     error,
     updateSet,
     finishSession,
+    reorderExercises,
     isUpdatingSet,
     isFinishing,
     refetch: fetchSession,

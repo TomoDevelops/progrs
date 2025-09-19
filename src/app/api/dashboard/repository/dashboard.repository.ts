@@ -1,4 +1,4 @@
-import { db } from "@/shared/db/database";
+import { getDb } from "@/shared/db/database";
 import {
   workoutRoutines,
   routineSchedule,
@@ -59,6 +59,20 @@ export interface SummaryStats {
   totalWeightLifted: number;
 }
 
+export interface PersonalRecord {
+  id: string;
+  exerciseName: string;
+  maxWeight: number;
+  achievedAt: Date;
+  isRecent: boolean;
+}
+
+export interface WeeklyStats {
+  workouts: number;
+  duration: number; // in minutes
+  volume: number; // in kg
+}
+
 export interface WorkoutSessionDetail {
   id: string;
   routineName: string;
@@ -80,9 +94,8 @@ export interface WorkoutSessionDetail {
 }
 
 export class DashboardRepository {
-  async getTodayPlannedWorkouts(
-    userId: string,
-  ): Promise<TodayWorkoutData[]> {
+  async getTodayPlannedWorkouts(userId: string): Promise<TodayWorkoutData[]> {
+    const db = getDb();
     const today = getTodayUTC(); // Get today's date in UTC
 
     // Get today's scheduled routines
@@ -113,11 +126,42 @@ export class DashboardRepository {
       return [];
     }
 
+    // Filter out routines that have already been completed today
+    const routinesNotCompleted = await Promise.all(
+      scheduledRoutines.map(async (scheduledRoutine) => {
+        // Check if this routine has been completed today
+        const completedSession = await db
+          .select({ id: workoutSessions.id })
+          .from(workoutSessions)
+          .where(
+            and(
+              eq(workoutSessions.userId, userId),
+              eq(workoutSessions.routineId, scheduledRoutine.routineId),
+              sql`DATE(${workoutSessions.endedAt}) = ${today}`,
+              sql`${workoutSessions.endedAt} IS NOT NULL`,
+            ),
+          )
+          .limit(1);
+
+        // Return the routine only if it hasn't been completed today
+        return completedSession.length === 0 ? scheduledRoutine : null;
+      }),
+    );
+
+    // Filter out null values (completed routines)
+    const availableRoutines = routinesNotCompleted.filter(
+      (routine): routine is NonNullable<typeof routine> => routine !== null,
+    );
+
+    if (availableRoutines.length === 0) {
+      return [];
+    }
+
     // Get exercises for each routine
     const workoutsWithExercises = await Promise.all(
-      scheduledRoutines.map(async (scheduledRoutine) => {
+      availableRoutines.map(async (scheduledRoutine) => {
         const routine = scheduledRoutine.routine;
-        
+
         // Get exercises for this routine from the routine template
         const routineExercisesList = await db
           .select({
@@ -145,7 +189,7 @@ export class DashboardRepository {
             equipment: item.exercise.equipment,
           })),
         };
-      })
+      }),
     );
 
     return workoutsWithExercises;
@@ -164,6 +208,7 @@ export class DashboardRepository {
     limit: number = 10,
     offset: number = 0,
   ): Promise<WorkoutHistoryItem[]> {
+    const db = getDb();
     // Only get completed workout sessions
     const sessions = await db
       .select({
@@ -200,15 +245,33 @@ export class DashboardRepository {
       .limit(limit)
       .offset(offset);
 
-    return sessions.map((session) => ({
-      id: session.id,
-      routineName: session.routineName || "Custom Workout",
-      endedAt: session.endedAt,
-      totalDuration: session.totalDuration,
-      totalExercises: Number(session.exerciseCount),
-      totalSets: 0, // Will be calculated separately if needed
-      notes: session.notes,
-    }));
+    // Get total sets for each session
+    const sessionsWithSets = await Promise.all(
+      sessions.map(async (session) => {
+        const setsCount = await db
+          .select({
+            totalSets: count(exerciseSets.id),
+          })
+          .from(exerciseSets)
+          .innerJoin(
+            sessionExercises,
+            eq(exerciseSets.sessionExerciseId, sessionExercises.id),
+          )
+          .where(eq(sessionExercises.sessionId, session.id));
+
+        return {
+          id: session.id,
+          routineName: session.routineName || "Custom Workout",
+          endedAt: session.endedAt,
+          totalDuration: session.totalDuration,
+          totalExercises: Number(session.exerciseCount),
+          totalSets: Number(setsCount[0]?.totalSets || 0),
+          notes: session.notes,
+        };
+      }),
+    );
+
+    return sessionsWithSets;
   }
 
   async getConsistencyData(
@@ -216,6 +279,7 @@ export class DashboardRepository {
     days: number = 30,
   ): Promise<ConsistencyData[]> {
     const { startDate, endDate } = getUTCDateRange(days);
+    const db = getDb();
 
     const consistencyData = await db
       .select({
@@ -241,6 +305,7 @@ export class DashboardRepository {
     userId: string,
     limit: number = 5,
   ): Promise<TrendingMetric[]> {
+    const db = getDb();
     // Get recent personal records with improvements
     const recentRecords = await db
       .select({
@@ -267,6 +332,7 @@ export class DashboardRepository {
   }
 
   async getSummaryStats(userId: string): Promise<SummaryStats> {
+    const db = getDb();
     // Get basic workout stats
     const workoutStats = await db
       .select({
@@ -338,6 +404,7 @@ export class DashboardRepository {
     userId: string,
     sessionId: string,
   ): Promise<WorkoutSessionDetail | null> {
+    const db = getDb();
     // Get the workout session
     const session = await db
       .select({
@@ -389,7 +456,7 @@ export class DashboardRepository {
 
     // Group exercises and their sets
     const exerciseMap = new Map();
-    
+
     exercisesWithSets.forEach((row) => {
       if (!exerciseMap.has(row.exerciseId)) {
         exerciseMap.set(row.exerciseId, {
@@ -400,7 +467,7 @@ export class DashboardRepository {
           sets: [],
         });
       }
-      
+
       if (row.setNumber !== null) {
         exerciseMap.get(row.exerciseId).sets.push({
           setNumber: row.setNumber,
@@ -419,6 +486,120 @@ export class DashboardRepository {
       notes: sessionData.notes,
       exercises: Array.from(exerciseMap.values()),
     };
+  }
+
+  async getRecentPersonalRecords(
+    userId: string,
+    limit: number = 10,
+    days: number = 30,
+  ): Promise<PersonalRecord[]> {
+    const db = getDb();
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const records = await db
+      .select({
+        id: personalRecords.id,
+        exerciseName: exercises.name,
+        maxWeight: personalRecords.maxWeight,
+        achievedAt: personalRecords.achievedAt,
+      })
+      .from(personalRecords)
+      .innerJoin(exercises, eq(personalRecords.exerciseId, exercises.id))
+      .where(
+        and(
+          eq(personalRecords.userId, userId),
+          gte(personalRecords.achievedAt, cutoffDate),
+        ),
+      )
+      .orderBy(desc(personalRecords.achievedAt))
+      .limit(limit);
+
+    return records.map((record) => ({
+      id: record.id,
+      exerciseName: record.exerciseName,
+      maxWeight: Number(record.maxWeight),
+      achievedAt: record.achievedAt,
+      isRecent: true,
+    }));
+  }
+
+  async getWeeklyStats(
+    userId: string,
+    weekOffset: number = 0,
+  ): Promise<WeeklyStats> {
+    const db = getDb();
+    // Calculate the start and end of the target week
+    const now = new Date();
+    const currentWeekStart = new Date(now);
+    currentWeekStart.setDate(now.getDate() - now.getDay() - weekOffset * 7); // Start of week (Sunday)
+    currentWeekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(currentWeekStart.getDate() + 6); // End of week (Saturday)
+    weekEnd.setHours(23, 59, 59, 999);
+
+    // Get completed workout sessions for the week
+    const sessions = await db
+      .select({
+        id: workoutSessions.id,
+        totalDuration: workoutSessions.totalDuration,
+        endedAt: workoutSessions.endedAt,
+      })
+      .from(workoutSessions)
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.endedAt, currentWeekStart),
+          lte(workoutSessions.endedAt, weekEnd),
+          sql`${workoutSessions.endedAt} IS NOT NULL`,
+        ),
+      );
+
+    // Calculate total volume for the week
+    const volumeResult = await db
+      .select({
+        totalVolume: sql<number>`COALESCE(SUM(${exerciseSets.weight} * ${exerciseSets.reps}), 0)`,
+      })
+      .from(exerciseSets)
+      .innerJoin(
+        sessionExercises,
+        eq(exerciseSets.sessionExerciseId, sessionExercises.id),
+      )
+      .innerJoin(
+        workoutSessions,
+        eq(sessionExercises.sessionId, workoutSessions.id),
+      )
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.endedAt, currentWeekStart),
+          lte(workoutSessions.endedAt, weekEnd),
+          sql`${workoutSessions.endedAt} IS NOT NULL`,
+          sql`${exerciseSets.weight} IS NOT NULL`,
+        ),
+      );
+
+    const totalDuration = sessions.reduce((sum, session) => {
+      return sum + (session.totalDuration || 0);
+    }, 0);
+
+    return {
+      workouts: sessions.length,
+      duration: totalDuration,
+      volume: Number(volumeResult[0]?.totalVolume || 0),
+    };
+  }
+
+  async getCurrentAndLastWeekStats(
+    userId: string,
+  ): Promise<{ currentWeek: WeeklyStats; lastWeek: WeeklyStats }> {
+    const [currentWeek, lastWeek] = await Promise.all([
+      this.getWeeklyStats(userId, 0), // Current week
+      this.getWeeklyStats(userId, 1), // Last week
+    ]);
+
+    return { currentWeek, lastWeek };
   }
 }
 

@@ -52,6 +52,11 @@ export interface UpdateSetRequest {
   reps: number;
 }
 
+export interface RepeatSessionRequest {
+  action: "repeat";
+  sessionId: string;
+}
+
 export interface FinishSessionRequest {
   action: "finish";
   notes?: string;
@@ -68,8 +73,14 @@ export interface ApiResponse<T = unknown> {
 export const updateSetSchema = z.object({
   sessionExerciseId: z.string().min(1, "Session exercise ID is required"),
   setNumber: z.number().min(1, "Set number must be at least 1"),
-  weight: z.number().min(0, "Weight cannot be negative").max(1000, "Weight cannot exceed 1000"),
-  reps: z.number().min(1, "Reps must be at least 1").max(100, "Reps cannot exceed 100"),
+  weight: z
+    .number()
+    .min(0, "Weight cannot be negative")
+    .max(1000, "Weight cannot exceed 1000"),
+  reps: z
+    .number()
+    .min(1, "Reps must be at least 1")
+    .max(100, "Reps cannot exceed 100"),
   isNewSet: z.boolean().optional(),
 });
 

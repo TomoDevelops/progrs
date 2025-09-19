@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/shared/lib/auth-client";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 export interface LoginFormData {
   email: string;
@@ -19,23 +21,23 @@ export interface UseLoginReturn {
   // Actions
   handleFormSubmit: (data: LoginFormData) => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
+  handleLineSignIn: () => Promise<void>;
 }
 
 export const useLogin = (): UseLoginReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const { handleSocialAuth, error: authError } = useAuth();
 
-  useEffect(() => {
-    const message = searchParams.get("message");
-    if (message === "password-reset-success") {
-      setSuccessMessage(
-        "Password reset successfully! Please log in with your new password.",
-      );
-    }
-  }, [searchParams]);
+  // Handle success message directly from searchParams without useEffect
+  const message = searchParams.get("message");
+  const successMessage =
+    message === "password-reset-success"
+      ? "Password reset successfully! Please log in with your new password."
+      : "";
 
   const handleFormSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -50,9 +52,11 @@ export const useLogin = (): UseLoginReturn => {
 
       if (error) {
         setError(error.message || "Failed to sign in");
-      } else {
-        router.push("/");
+        return;
       }
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+
+      router.push("/");
     } catch {
       setError("An unexpected error occurred");
     } finally {
@@ -62,20 +66,28 @@ export const useLogin = (): UseLoginReturn => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
+      setError("");
+      await handleSocialAuth("google", "login");
     } catch {
-      setError("Failed to sign in with Google");
+      setError("Failed to initiate Google sign in");
+    }
+  };
+
+  const handleLineSignIn = async () => {
+    try {
+      setError("");
+      await handleSocialAuth("line", "login");
+    } catch {
+      setError("Failed to initiate LINE sign in");
     }
   };
 
   return {
     isLoading,
-    error,
+    error: error || authError,
     successMessage,
     handleFormSubmit,
     handleGoogleSignIn,
+    handleLineSignIn,
   };
 };

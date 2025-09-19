@@ -112,14 +112,15 @@ export const useResetPassword = (): UseResetPasswordReturn => {
 
       if (error) {
         setError(error.message || "Failed to reset password");
-      } else {
-        // Clear session storage
-        sessionStorage.removeItem("reset-email");
-        sessionStorage.removeItem("reset-otp");
-
-        // Redirect to login with success message
-        router.push("/login?message=password-reset-success");
+        return;
       }
+
+      // Clear session storage
+      sessionStorage.removeItem("reset-email");
+      sessionStorage.removeItem("reset-otp");
+
+      // Redirect to login with success message
+      router.push("/login?message=password-reset-success");
     } catch {
       setError("An unexpected error occurred");
     } finally {

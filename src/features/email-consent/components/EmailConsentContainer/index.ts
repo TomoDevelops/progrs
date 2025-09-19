@@ -1,0 +1,1 @@
+export { EmailConsentContainer } from "./EmailConsentContainer";

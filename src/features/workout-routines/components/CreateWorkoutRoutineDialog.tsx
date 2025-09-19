@@ -39,8 +39,9 @@ import {
 } from "@/shared/components/ui/select";
 
 import { Plus, Calendar as CalendarIcon, Loader2 } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/shared/lib/utils";
+import { useLocale } from "@/shared/providers/LocaleProvider";
+import { formatDateWithLocale } from "@/shared/utils/date";
 
 import {
   workoutRoutineSchema,
@@ -71,6 +72,7 @@ export function CreateWorkoutRoutineDialog({
       }
     >
   >({});
+  const { dateFnsLocale } = useLocale();
 
   const form = useForm<WorkoutRoutine>({
     resolver: zodResolver(workoutRoutineSchema),
@@ -107,7 +109,7 @@ export function CreateWorkoutRoutineDialog({
           "Content-Type": "application/json",
         },
         body: JSON.stringify(transformedData, (key, value) => {
-          // Convert Date objects to ISO strings for JSON serialization
+          // Convert Date objects to ISO strings for consistent handling
           if (value instanceof Date) {
             return value.toISOString();
           }
@@ -124,12 +126,13 @@ export function CreateWorkoutRoutineDialog({
         setOpen(false);
         form.reset();
         onSuccess?.();
-      } else {
-        console.error("Failed to create routine:", result.error);
-        toast.error("Failed to create routine", {
-          description: result.error || "An unexpected error occurred",
-        });
+        return;
       }
+
+      console.error("Failed to create routine:", result.error);
+      toast.error("Failed to create routine", {
+        description: result.error || "An unexpected error occurred",
+      });
     } catch (error) {
       console.error("Error creating routine:", error);
       toast.error("Error creating routine", {
@@ -250,7 +253,11 @@ export function CreateWorkoutRoutineDialog({
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP")
+                                formatDateWithLocale(
+                                  field.value,
+                                  "PPP",
+                                  dateFnsLocale || undefined,
+                                )
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -263,10 +270,26 @@ export function CreateWorkoutRoutineDialog({
                             autoFocus
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              if (date) {
+                                // Create a new date at midnight UTC to avoid timezone issues
+                                const utcDate = new Date(
+                                  Date.UTC(
+                                    date.getFullYear(),
+                                    date.getMonth(),
+                                    date.getDate(),
+                                  ),
+                                );
+                                field.onChange(utcDate);
+                                return;
+                              }
+
+                              field.onChange(date);
+                            }}
                             disabled={(date) =>
                               date < new Date(new Date().setHours(0, 0, 0, 0))
                             }
+                            locale={dateFnsLocale || undefined}
                           />
                         </PopoverContent>
                       </Popover>

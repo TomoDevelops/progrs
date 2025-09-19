@@ -49,7 +49,9 @@ export function FinishWorkoutDialog({
     return `${mins}m`;
   };
 
-  const completionRate = Math.round((completedExercises / totalExercises) * 100);
+  const completionRate = Math.round(
+    (completedExercises / totalExercises) * 100,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,36 +68,42 @@ export function FinishWorkoutDialog({
 
         <div className="space-y-4">
           {/* Workout Summary */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 rounded-lg bg-gray-50 p-4">
             <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
+              <div className="mb-1 flex items-center justify-center">
                 <Target className="h-4 w-4 text-blue-500" />
               </div>
-              <div className="text-lg font-bold text-blue-600">{completedExercises}</div>
-              <div className="text-xs text-muted-foreground">Exercises</div>
+              <div className="text-lg font-bold text-blue-600">
+                {completedExercises}
+              </div>
+              <div className="text-muted-foreground text-xs">Exercises</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
+              <div className="mb-1 flex items-center justify-center">
                 <Clock className="h-4 w-4 text-green-500" />
               </div>
-              <div className="text-lg font-bold text-green-600">{formatDuration(duration)}</div>
-              <div className="text-xs text-muted-foreground">Duration</div>
+              <div className="text-lg font-bold text-green-600">
+                {formatDuration(duration)}
+              </div>
+              <div className="text-muted-foreground text-xs">Duration</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
+              <div className="mb-1 flex items-center justify-center">
                 <Trophy className="h-4 w-4 text-yellow-500" />
               </div>
-              <div className="text-lg font-bold text-yellow-600">{completionRate}%</div>
-              <div className="text-xs text-muted-foreground">Complete</div>
+              <div className="text-lg font-bold text-yellow-600">
+                {completionRate}%
+              </div>
+              <div className="text-muted-foreground text-xs">Complete</div>
             </div>
           </div>
 
           {/* Completion Status */}
           {completedExercises < totalExercises && (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
               <p className="text-sm text-orange-800">
-                You have {totalExercises - completedExercises} exercise(s) remaining. 
-                Are you sure you want to finish early?
+                You have {totalExercises - completedExercises} exercise(s)
+                remaining. Are you sure you want to finish early?
               </p>
             </div>
           )}
@@ -129,12 +137,12 @@ export function FinishWorkoutDialog({
           >
             {isFinishing ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Finishing...
               </>
             ) : (
               <>
-                <Trophy className="h-4 w-4 mr-2" />
+                <Trophy className="mr-2 h-4 w-4" />
                 Finish Workout
               </>
             )}

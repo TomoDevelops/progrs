@@ -157,7 +157,9 @@ export class DashboardService {
 
     // Use UTC dates to match backend consistency
     const now = new Date();
-    const utcEndDate = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    const utcEndDate = new Date(
+      now.getTime() + now.getTimezoneOffset() * 60000,
+    );
 
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(utcEndDate);
@@ -179,11 +181,10 @@ export class DashboardService {
 
     // Start from the most recent date and work backwards
     for (let i = consistencyData.length - 1; i >= 0; i--) {
-      if (consistencyData[i].workoutsCompleted > 0) {
-        streak++;
-      } else {
+      if (consistencyData[i].workoutsCompleted <= 0) {
         break;
       }
+      streak++;
     }
 
     return streak;

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/shared/config/auth/auth";
+import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { dashboardRepository } from "@/app/api/dashboard/repository/dashboard.repository";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  { params }: { params: Promise<{ sessionId: string }> },
 ) {
+  const auth = getAuth();
   try {
     // Get the session
     const session = await auth.api.getSession({
@@ -16,7 +17,7 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -25,20 +26,20 @@ export async function GET(
     if (!sessionId) {
       return NextResponse.json(
         { success: false, error: "Session ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get workout session details
     const workoutDetail = await dashboardRepository.getWorkoutSessionDetail(
       session.user.id,
-      sessionId
+      sessionId,
     );
 
     if (!workoutDetail) {
       return NextResponse.json(
         { success: false, error: "Workout session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -54,7 +55,7 @@ export async function GET(
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

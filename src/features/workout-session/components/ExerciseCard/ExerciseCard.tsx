@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
 import { CheckCircle, Circle, Loader2 } from "lucide-react";
@@ -14,15 +19,19 @@ interface ExerciseCardProps {
   isUpdatingSet: boolean;
 }
 
-export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseCardProps) {
-  const [editingSet, setEditingSet] = useState<string | null>(null);
+export function ExerciseCard({
+  exercise,
+  onUpdateSet,
+  isUpdatingSet,
+}: ExerciseCardProps) {
+  const [recordingSet, setRecordingSet] = useState<string | null>(null);
   const [tempWeight, setTempWeight] = useState<string>("");
   const [tempReps, setTempReps] = useState<string>("");
 
-  const handleSetEdit = (setId: string, currentWeight?: number, currentReps?: number) => {
-    setEditingSet(setId);
-    setTempWeight(currentWeight?.toString() || exercise.targetWeight?.toString() || "");
-    setTempReps(currentReps?.toString() || exercise.maxReps?.toString() || "");
+  const handleSetRecord = (setId: string) => {
+    setRecordingSet(setId);
+    setTempWeight(exercise.targetWeight?.toString() || "");
+    setTempReps(exercise.maxReps?.toString() || "");
   };
 
   const handleSetSave = async (setId: string, setNumber: number) => {
@@ -31,9 +40,9 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
 
     if (weight && reps && weight > 0 && reps > 0) {
       // Check if this is a new set (not previously completed)
-      const currentSet = exercise.sets.find(s => s.setNumber === setNumber);
+      const currentSet = exercise.sets.find((s) => s.setNumber === setNumber);
       const isNewSet = !currentSet?.isCompleted;
-      
+
       await onUpdateSet({
         sessionExerciseId: exercise.id,
         setNumber,
@@ -41,24 +50,28 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
         reps,
         isNewSet,
       });
-      setEditingSet(null);
+      setRecordingSet(null);
       setTempWeight("");
       setTempReps("");
     }
   };
 
   const handleSetCancel = () => {
-    setEditingSet(null);
+    setRecordingSet(null);
     setTempWeight("");
     setTempReps("");
   };
 
-  const handleSetToggle = async (setNumber: number, weight: number | null, reps: number) => {
+  const handleSetToggle = async (
+    setNumber: number,
+    weight: number | null,
+    reps: number,
+  ) => {
     if (weight && reps) {
       // Check if this is a new set (not previously completed)
-      const currentSet = exercise.sets.find(s => s.setNumber === setNumber);
+      const currentSet = exercise.sets.find((s) => s.setNumber === setNumber);
       const isNewSet = !currentSet?.isCompleted;
-      
+
       await onUpdateSet({
         sessionExerciseId: exercise.id,
         setNumber,
@@ -69,7 +82,7 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
     }
   };
 
-  const completedSets = exercise.sets.filter(set => set.isCompleted).length;
+  const completedSets = exercise.sets.filter((set) => set.isCompleted).length;
   const totalSets = exercise.sets.length;
 
   return (
@@ -78,27 +91,26 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl">{exercise.name}</CardTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <Badge variant="secondary">{exercise.muscleGroup}</Badge>
               <Badge variant="outline">
                 {completedSets} / {totalSets} sets
               </Badge>
             </div>
           </div>
-
         </div>
-
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {exercise.sets.map((set, index) => {
-            const isEditing = editingSet === set.id;
-            const isCurrentlyUpdating = isUpdatingSet && editingSet === set.id;
+            const isRecording = recordingSet === set.id;
+            const isCurrentlyUpdating =
+              isUpdatingSet && recordingSet === set.id;
 
             return (
               <div
                 key={set.id}
-                className={`p-4 rounded-lg border transition-all ${
+                className={`rounded-lg border p-4 transition-all ${
                   set.isCompleted
                     ? "border-green-200 bg-green-50"
                     : "border-gray-200 bg-white hover:border-gray-300"
@@ -109,9 +121,11 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSetToggle(set.setNumber, set.weight, set.reps)}
+                      onClick={() =>
+                        handleSetToggle(set.setNumber, set.weight, set.reps)
+                      }
                       disabled={isUpdatingSet || !set.weight || !set.reps}
-                      className="p-1 h-8 w-8"
+                      className="h-8 w-8 p-1"
                     >
                       {set.isCompleted ? (
                         <CheckCircle className="h-5 w-5 text-green-600" />
@@ -119,40 +133,54 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
                         <Circle className="h-5 w-5 text-gray-400" />
                       )}
                     </Button>
-                    <span className="font-medium text-sm">Set {index + 1}</span>
+                    <span className="text-sm font-medium">Set {index + 1}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {isEditing ? (
+                    {isRecording ? (
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                           <Input
                             type="number"
-                            placeholder={exercise.targetWeight ? exercise.targetWeight.toString() : "Weight"}
+                            placeholder={
+                              exercise.targetWeight
+                                ? exercise.targetWeight.toString()
+                                : "Weight"
+                            }
                             value={tempWeight}
                             onChange={(e) => setTempWeight(e.target.value)}
-                            className="w-20 h-8 text-sm"
+                            className="h-8 w-20 text-sm"
                             min="0"
                             step="0.5"
                           />
-                          <span className="text-xs text-muted-foreground">kg</span>
+                          <span className="text-muted-foreground text-xs">
+                            kg
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Input
                             type="number"
-                            placeholder={exercise.maxReps ? exercise.maxReps.toString() : "Reps"}
+                            placeholder={
+                              exercise.maxReps
+                                ? exercise.maxReps.toString()
+                                : "Reps"
+                            }
                             value={tempReps}
                             onChange={(e) => setTempReps(e.target.value)}
-                            className="w-16 h-8 text-sm"
+                            className="h-8 w-16 text-sm"
                             min="1"
                           />
-                          <span className="text-xs text-muted-foreground">reps</span>
+                          <span className="text-muted-foreground text-xs">
+                            reps
+                          </span>
                         </div>
                         <div className="flex gap-1">
                           <Button
                             size="sm"
                             onClick={() => handleSetSave(set.id, set.setNumber)}
-                            disabled={isCurrentlyUpdating || !tempWeight || !tempReps}
+                            disabled={
+                              isCurrentlyUpdating || !tempWeight || !tempReps
+                            }
                             className="h-8 px-2"
                           >
                             {isCurrentlyUpdating ? (
@@ -181,19 +209,21 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
                             <span className="font-medium">{set.reps} reps</span>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-muted-foreground text-sm">
                             Click Record to add weight and reps
                           </span>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleSetEdit(set.id, set.weight || undefined, set.reps)}
-                          disabled={isUpdatingSet}
-                          className="h-8 px-3"
-                        >
-                          {set.weight && set.reps ? "Edit" : "Record"}
-                        </Button>
+                        {!set.weight || !set.reps ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSetRecord(set.id)}
+                            disabled={isUpdatingSet}
+                            className="h-8 px-3"
+                          >
+                            Record
+                          </Button>
+                        ) : null}
                       </div>
                     )}
                   </div>
@@ -204,7 +234,7 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
         </div>
 
         {/* Exercise Summary */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 border-t border-gray-200 pt-4">
           <div className="grid grid-cols-3 gap-4 text-center text-sm">
             <div>
               <div className="font-medium text-gray-900">{completedSets}</div>
@@ -213,15 +243,20 @@ export function ExerciseCard({ exercise, onUpdateSet, isUpdatingSet }: ExerciseC
             <div>
               <div className="font-medium text-gray-900">
                 {exercise.sets
-                  .filter(s => s.weight && s.reps)
-                  .reduce((total, s) => total + (s.weight! * s.reps!), 0)
+                  .filter((s) => s.weight && s.reps)
+                  .reduce((total, s) => total + s.weight! * s.reps!, 0)
                   .toLocaleString()}
               </div>
               <div className="text-muted-foreground">Total Volume</div>
             </div>
             <div>
               <div className="font-medium text-gray-900">
-                {Math.max(...exercise.sets.filter(s => s.weight).map(s => s.weight!), 0) || 0}
+                {Math.max(
+                  ...exercise.sets
+                    .filter((s) => s.weight)
+                    .map((s) => s.weight!),
+                  0,
+                ) || 0}
               </div>
               <div className="text-muted-foreground">Max Weight</div>
             </div>

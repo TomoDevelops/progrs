@@ -32,15 +32,19 @@ export function CancelRestModal({
         <DialogHeader>
           <DialogTitle>Skip Rest Period?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to skip your rest period and continue with the workout?
-            Taking proper rest between sets helps with performance and recovery.
+            Are you sure you want to skip your rest period and continue with the
+            workout? Taking proper rest between sets helps with performance and
+            recovery.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Continue Resting
           </Button>
-          <Button onClick={handleConfirm} className="bg-destructive hover:bg-destructive/90">
+          <Button
+            onClick={handleConfirm}
+            className="bg-destructive hover:bg-destructive/90"
+          >
             Skip Rest
           </Button>
         </DialogFooter>

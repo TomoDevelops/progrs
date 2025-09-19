@@ -15,7 +15,7 @@ FROM oven/bun:1 AS production
 WORKDIR /app
 
 # Install only production dependencies
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 # Copy only the necessary files from build stage

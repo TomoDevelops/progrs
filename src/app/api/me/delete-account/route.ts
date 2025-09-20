@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const auth = getAuth();
+    const env = getEnv();
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session) {
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest) {
 
     // Use Better Auth's built-in send delete verification endpoint
     const response = await fetch(
-      `${process.env.BETTER_AUTH_URL}/send-delete-account-verification`,
+      `${env.BETTER_AUTH_URL}/send-delete-account-verification`,
       {
         method: "POST",
         headers: {
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
           Cookie: request.headers.get("cookie") || "",
         },
         body: JSON.stringify({
-          callbackURL: `${process.env.BETTER_AUTH_URL}/delete-account-callback`,
+          callbackURL: `${env.BETTER_AUTH_URL}/delete-account-callback`,
         }),
       },
     );

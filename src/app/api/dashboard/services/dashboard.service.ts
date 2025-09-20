@@ -6,7 +6,7 @@ import {
   type TrendingMetric,
   type SummaryStats,
 } from "@/app/api/dashboard/repository/dashboard.repository";
-import { toUTCDateString } from "@/shared/utils/date";
+
 
 export interface DashboardOverview {
   todayWorkout: TodayWorkoutData | null;
@@ -26,9 +26,9 @@ export class DashboardService {
     }
   }
 
-  async getTodayWorkouts(userId: string): Promise<TodayWorkoutData[]> {
+  async getTodayWorkouts(userId: string, userTimezone?: string): Promise<TodayWorkoutData[]> {
     try {
-      return await dashboardRepository.getTodayPlannedWorkouts(userId);
+      return await dashboardRepository.getTodayPlannedWorkouts(userId, userTimezone);
     } catch (error) {
       console.error("Error fetching today workouts:", error);
       throw new Error("Failed to fetch today's workouts");
@@ -164,7 +164,7 @@ export class DashboardService {
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(utcEndDate);
       date.setUTCDate(utcEndDate.getUTCDate() - i);
-      const dateStr = toUTCDateString(date);
+      const dateStr = date.toISOString().split('T')[0];
 
       result.push({
         date: dateStr,

@@ -9,6 +9,7 @@ import { workoutRoutineSchema } from "@/features/workout-routines/types";
 import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, desc } from "drizzle-orm";
+import { toLocalDateString } from "@/shared/utils/date";
 
 export async function POST(request: NextRequest) {
   const db = getDb();
@@ -97,10 +98,14 @@ export async function POST(request: NextRequest) {
 
       // Create routine schedule if provided
       if (schedule) {
+        // Extract user timezone from request headers
+        const userTimezone = request.headers.get('x-user-timezone') || 
+                            request.nextUrl.searchParams.get('timezone') || undefined;
+        
         await tx.insert(routineSchedule).values({
           routineId: routine.id,
           userId: session.user.id,
-          scheduledDate: schedule.startDate.toISOString().split("T")[0], // Convert to date string
+          scheduledDate: toLocalDateString(schedule.startDate, userTimezone), // Store in user's timezone
         });
       }
 

@@ -12,31 +12,30 @@ import {
 } from "@/shared/config/locale/locale.config";
 
 /**
- * Get today's date as YYYY-MM-DD format
+ * Get today's date as YYYY-MM-DD format in user's timezone
  * This ensures consistent date comparison for date-only operations
+ * @param userTimezone - User's timezone (defaults to system timezone)
  */
-export function getTodayUTC(): string {
+export function getTodayInTimezone(userTimezone?: string): string {
   const now = new Date();
-  // For date-only comparisons, use local date without timezone conversion
-  return now.toISOString().split("T")[0];
+  const timezone = userTimezone || getUserTimezone();
+  
+  // Convert to user's timezone and get date string
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  return formatter.format(now);
 }
 
-/**
- * Get a date as YYYY-MM-DD format
- * @param date - The date to convert
- */
-export function toUTCDateString(date: Date): string {
-  // For date-only comparisons, use the date without timezone conversion
-  return date.toISOString().split("T")[0];
-}
 
-/**
- * Convert a UTC date string to a Date object in user's timezone
- * @param dateString - UTC date string in YYYY-MM-DD format
- */
-export function fromUTCDateString(dateString: string): Date {
-  return new Date(dateString + "T00:00:00.000Z");
-}
+
+
+
+
 
 /**
  * Get date range for consistency data in UTC
@@ -184,31 +183,56 @@ export function getUserTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
+
+
+
+
 /**
- * Convert UTC date to user's local date for display
- * @param utcDateString - UTC date string in YYYY-MM-DD format
+ * Check if a date string represents today in user's timezone
+ * @param dateString - Date string in YYYY-MM-DD format
+ * @param userTimezone - User's timezone (defaults to system timezone)
  */
-export function utcToLocalDate(utcDateString: string): Date {
-  // Create date in UTC and convert to local timezone
-  const utcDate = new Date(utcDateString + "T00:00:00.000Z");
-  return new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000);
+export function isToday(dateString: string, userTimezone?: string): boolean {
+  const today = getTodayInTimezone(userTimezone);
+  return dateString === today;
 }
 
 /**
- * Get today's date in user's local timezone as YYYY-MM-DD
- * This is useful for display purposes only
+ * Check if a workout session was completed today in user's timezone
+ * @param completedAt - Date when workout was completed
+ * @param userTimezone - User's timezone (defaults to system timezone)
  */
-export function getTodayLocal(): string {
-  const now = new Date();
-  return now.toISOString().split("T")[0];
+export function isCompletedToday(completedAt: Date, userTimezone?: string): boolean {
+  const timezone = userTimezone || getUserTimezone();
+  
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  const completedDate = formatter.format(completedAt);
+  const today = getTodayInTimezone(timezone);
+  
+  return completedDate === today;
 }
 
 /**
- * Check if a UTC date string represents today in user's timezone
- * @param utcDateString - UTC date string in YYYY-MM-DD format
+ * Convert a Date object to a local date string in the user's timezone
+ * @param date - The date to convert
+ * @param userTimezone - The user's timezone (optional, defaults to system timezone)
+ * @returns Date string in YYYY-MM-DD format in the user's timezone
  */
-export function isToday(utcDateString: string): boolean {
-  const today = getTodayLocal();
-  const localDate = utcToLocalDate(utcDateString);
-  return localDate.toISOString().split("T")[0] === today;
+export function toLocalDateString(date: Date, userTimezone?: string): string {
+  const timezone = userTimezone || getUserTimezone();
+  
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  return formatter.format(date);
 }

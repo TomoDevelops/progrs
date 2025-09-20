@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import type { ApiResponse } from "@/shared/types/api";
+import { getUserTimezone } from "@/shared/utils/date";
 
 /**
  * Configuration options for API requests
@@ -68,10 +69,14 @@ class ApiClient {
     const url = `${mergedConfig.baseUrl || this.baseUrl}${endpoint}`;
 
     try {
+      // Automatically include user timezone in headers
+      const userTimezone = getUserTimezone();
+      
       const response = await fetch(url, {
         ...mergedConfig,
         headers: {
           ...DEFAULT_CONFIG.headers,
+          'x-user-timezone': userTimezone,
           ...mergedConfig.headers,
         },
       });

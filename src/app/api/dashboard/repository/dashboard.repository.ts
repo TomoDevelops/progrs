@@ -10,7 +10,7 @@ import {
   personalRecords,
 } from "@/shared/db/schema/app-schema";
 import { eq, desc, gte, lte, and, count, avg, sql } from "drizzle-orm";
-import { getTodayUTC, getUTCDateRange } from "@/shared/utils/date";
+import { getTodayInTimezone, getUTCDateRange, isCompletedToday } from "@/shared/utils/date";
 
 export interface TodayWorkoutData {
   id: string;
@@ -94,9 +94,9 @@ export interface WorkoutSessionDetail {
 }
 
 export class DashboardRepository {
-  async getTodayPlannedWorkouts(userId: string): Promise<TodayWorkoutData[]> {
+  async getTodayPlannedWorkouts(userId: string, userTimezone?: string): Promise<TodayWorkoutData[]> {
     const db = getDb();
-    const today = getTodayUTC(); // Get today's date in UTC
+    const today = getTodayInTimezone(userTimezone); // Get today's date in user's timezone
 
     // Get today's scheduled routines
     const scheduledRoutines = await db
@@ -129,22 +129,28 @@ export class DashboardRepository {
     // Filter out routines that have already been completed today
     const routinesNotCompleted = await Promise.all(
       scheduledRoutines.map(async (scheduledRoutine) => {
-        // Check if this routine has been completed today
-        const completedSession = await db
-          .select({ id: workoutSessions.id })
+        // Check if this routine has been completed today in user's timezone
+        const completedSessions = await db
+          .select({ 
+            id: workoutSessions.id,
+            endedAt: workoutSessions.endedAt
+          })
           .from(workoutSessions)
           .where(
             and(
               eq(workoutSessions.userId, userId),
               eq(workoutSessions.routineId, scheduledRoutine.routineId),
-              sql`DATE(${workoutSessions.endedAt}) = ${today}`,
               sql`${workoutSessions.endedAt} IS NOT NULL`,
             ),
-          )
-          .limit(1);
+          );
+
+        // Check if any session was completed today in user's timezone
+        const hasCompletedToday = completedSessions.some(session => 
+          session.endedAt && isCompletedToday(session.endedAt, userTimezone)
+        );
 
         // Return the routine only if it hasn't been completed today
-        return completedSession.length === 0 ? scheduledRoutine : null;
+        return !hasCompletedToday ? scheduledRoutine : null;
       }),
     );
 

@@ -23,9 +23,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Extract user timezone from request headers or query parameters
+    const userTimezone = request.headers.get('x-user-timezone') || 
+                        request.nextUrl.searchParams.get('timezone') || 
+                        undefined;
+
     // Get today's planned workouts
     const todayWorkouts = await dashboardService.getTodayWorkouts(
       session.user.id,
+      userTimezone,
     );
 
     const response: ApiSuccessResponse<typeof todayWorkouts> = {

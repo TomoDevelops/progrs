@@ -18,6 +18,7 @@ export default async function Home() {
   if (!session) {
     redirect("/login");
   }
+  console.log(session);
 
   return <DashboardContainer />;
 }

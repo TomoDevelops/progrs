@@ -15,7 +15,6 @@ import { Separator } from "@/shared/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -28,23 +27,9 @@ import type { UseSignupReturn } from "@/features/auth/signup/hooks/useSignup";
 import { useState } from "react";
 import LoginWithLine from "@/shared/components/External/LoginWithLine";
 import LoginWithGoogle from "@/shared/components/External/LoginWithGoogle";
+import { signupSchema, SignupFormData } from "@/shared/schemas";
 
-const signupSchema = z
-  .object({
-    username: z.string().min(1, "Username is required"),
-    email: z.email("Please enter a valid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-    acceptTerms: z.boolean().refine((val) => val === true, {
-      message: "You must accept the terms and conditions",
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
 
-type SignupFormData = z.infer<typeof signupSchema>;
 
 interface SignupFormProps {
   signupState: UseSignupReturn;

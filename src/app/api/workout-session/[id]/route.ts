@@ -11,12 +11,7 @@ import {
 import { getAuth } from "@/shared/config/auth/auth";
 import { headers } from "next/headers";
 import { eq, and, sql } from "drizzle-orm";
-import { z } from "zod";
-
-// Schema for finishing a workout session
-const finishSessionSchema = z.object({
-  notes: z.string().optional(),
-});
+import { finishSessionSchema } from "@/shared/schemas";
 
 export async function GET(
   request: NextRequest,

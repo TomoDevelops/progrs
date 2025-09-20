@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
 
 import { cn } from "@/shared/lib/utils";
 import type { ConsistencyData } from "@/app/api/dashboard/repository/dashboard.repository";

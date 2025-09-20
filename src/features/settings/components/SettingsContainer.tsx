@@ -13,6 +13,7 @@ import { SecuritySection } from "./sections/SecuritySection";
 // import { ShortcutsSection } from "./sections/ShortcutsSection";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
 import { authClient } from "@/shared/lib/auth-client";
 import {
@@ -164,7 +165,13 @@ export function SettingsContainer() {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-8">
           {navigationItems.map((item) => (
-            <div key={item.id}>{renderSection(item.id)}</div>
+            <ErrorBoundary
+              key={item.id}
+              title={`Failed to load ${item.label.toLowerCase()} settings`}
+              queryKey={["settings", item.id]}
+            >
+              {renderSection(item.id)}
+            </ErrorBoundary>
           ))}
         </div>
       </div>

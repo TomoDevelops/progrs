@@ -5,6 +5,7 @@ import { WorkoutSessionContent } from "@/features/workout-session/components/Wor
 import { useWorkoutSession } from "@/features/workout-session/hooks/useWorkoutSession";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { ErrorState } from "@/shared/components/ErrorState";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
 export default function WorkoutSessionPage() {
   const params = useParams();
@@ -52,13 +53,18 @@ export default function WorkoutSessionPage() {
   }
 
   return (
-    <WorkoutSessionContent
-      session={session}
-      onUpdateSet={updateSet}
-      onFinishSession={finishSession}
-      onReorderExercises={reorderExercises}
-      isUpdatingSet={isUpdatingSet}
-      isFinishing={isFinishing}
-    />
+    <ErrorBoundary
+      title="Workout Session Error"
+      queryKey={["workout-session", sessionId]}
+    >
+      <WorkoutSessionContent
+        session={session}
+        onUpdateSet={updateSet}
+        onFinishSession={finishSession}
+        onReorderExercises={reorderExercises}
+        isUpdatingSet={isUpdatingSet}
+        isFinishing={isFinishing}
+      />
+    </ErrorBoundary>
   );
 }

@@ -426,3 +426,95 @@ export const dataExports = pgTable(
     ),
   }),
 );
+
+// Rate Limiting Tables
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    identifier: text("identifier").notNull(), // IP address or user ID
+    action: text("action").notNull(), // e.g., 'generate-workout'
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    identifierActionIdx: index("idx_rate_limit_identifier_action").on(
+      table.identifier,
+      table.action,
+    ),
+    createdAtIdx: index("idx_rate_limit_created_at").on(table.createdAt),
+  }),
+);
+
+// AI Workout Generation Tables
+export const aiWorkoutBlueprints = pgTable(
+  "ai_workout_blueprints",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    specHash: text("spec_hash").notNull().unique(),
+    routineData: text("routine_data").notNull(), // JSON string of the routine
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastUsedAt: timestamp("last_used_at").defaultNow().notNull(),
+    usageCount: integer("usage_count").default(1).notNull(),
+  },
+  (table) => ({
+    specHashIdx: index("idx_blueprint_spec_hash").on(table.specHash),
+    lastUsedIdx: index("idx_blueprint_last_used").on(table.lastUsedAt),
+  }),
+);
+
+export const aiGenerationRequests = pgTable(
+  "ai_generation_requests",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    specHash: text("spec_hash").notNull(),
+    blueprintId: text("blueprint_id").references(() => aiWorkoutBlueprints.id, {
+      onDelete: "set null",
+    }),
+    requestData: text("request_data").notNull(), // JSON string of the original request
+    idempotencyKey: text("idempotency_key").unique(),
+    result: text("result"), // JSON string of the generated workout
+    status: text("status").default("pending").notNull(), // pending|processing|completed|failed
+    error: text("error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => ({
+    userDateIdx: index("idx_ai_request_user_date").on(
+      table.userId,
+      table.createdAt,
+    ),
+    statusIdx: index("idx_ai_request_status").on(table.status),
+  }),
+);
+
+export const aiExerciseAliases = pgTable(
+  "ai_exercise_aliases",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    aiName: text("ai_name").notNull(),
+    canonicalExerciseId: text("canonical_exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    confidence: decimal("confidence", { precision: 3, scale: 2 }).notNull(), // 0.00-1.00
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    aiNameIdx: index("idx_ai_alias_name").on(table.aiName),
+    exerciseIdx: index("idx_ai_alias_exercise").on(table.canonicalExerciseId),
+  }),
+);

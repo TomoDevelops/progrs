@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import {
@@ -29,13 +28,7 @@ import type { UseLoginReturn } from "@/features/auth/login/hooks/useLogin";
 import LoginWithLine from "@/shared/components/External/LoginWithLine";
 import LoginWithGoogle from "@/shared/components/External/LoginWithGoogle";
 
-const loginSchema = z.object({
-  email: z.email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-  rememberMe: z.boolean(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { loginSchema, LoginFormData } from "@/shared/schemas";
 
 interface LoginFormProps {
   loginState: UseLoginReturn;

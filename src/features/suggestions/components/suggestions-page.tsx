@@ -2,10 +2,10 @@
 
 import { SuggestionsHeader } from "./suggestions-header";
 import { SuggestionsStats } from "./suggestions-stats";
-import { SuggestionsFormSection } from "./suggestions-form-section";
-import { SuggestionsResultsSection } from "./suggestions-results-section";
+import { SuggestionsFormSection } from "./suggestionsFormSection";
+import { SuggestionsResultsSection } from "./suggestionsResultsSection";
 import { SuggestionsErrorBoundary } from "./suggestions-error-boundary";
-import { useSuggestionsState } from "../hooks/use-suggestions-state";
+import { useSuggestionsState } from "../hooks/useSuggestionsState";
 import type { SuggestionsPageProps } from "../types";
 import { cn } from "@/shared/lib/utils";
 

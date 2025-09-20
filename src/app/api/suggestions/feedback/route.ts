@@ -2,10 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuth } from "@/shared/config/auth/auth";
 import { ApiErrorResponse, ApiSuccessResponse } from "@/shared/types/api";
 import { headers } from "next/headers";
-import { workoutFeedbackSchema } from "@/features/ai-workouts/schemas/ai-workout.schemas";
-import { getDb } from "@/shared/db/database";
-import { aiGenerationRequests } from "@/shared/db/schema/app-schema";
-import { eq } from "drizzle-orm";
+import { workoutFeedbackSchema } from "@/features/suggestions/schemas/ai-workout.schemas";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +38,6 @@ export async function POST(request: NextRequest) {
     }
 
     const feedback = validationResult.data;
-    const db = getDb();
 
     // Verify the workout belongs to the user (optional security check)
     // For now, we'll just log the feedback

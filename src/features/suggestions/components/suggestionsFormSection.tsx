@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { WorkoutForm } from "@/features/ai-workouts/components/workout-form";
+import { WorkoutForm } from "@/features/suggestions/components/workoutForm";
 import type { GenerateWorkoutRequest } from "../types";
 
 interface SuggestionsFormSectionProps {

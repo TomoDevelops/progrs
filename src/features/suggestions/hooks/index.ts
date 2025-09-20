@@ -1,1 +1,1 @@
-export { useSuggestionsState } from "./use-suggestions-state";
+export { useSuggestionsState } from "./useSuggestionsState";

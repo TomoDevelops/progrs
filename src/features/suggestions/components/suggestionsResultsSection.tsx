@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Loader2, Dumbbell } from "lucide-react";
-import { WorkoutResults } from "@/features/ai-workouts/components/workout-results";
+import { WorkoutResults } from "@/features/suggestions/components/workoutResults";
 import type { GeneratedWorkout } from "../types";
 
 interface SuggestionsResultsSectionProps {

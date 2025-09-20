@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@/shared/config/auth/auth";
 import { dashboardService } from "@/app/api/dashboard/services/dashboard.service";
-
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/shared/types/api";
 
 export async function GET(request: NextRequest) {

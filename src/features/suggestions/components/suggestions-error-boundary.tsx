@@ -57,19 +57,3 @@ export function SuggestionsErrorBoundary({ children, fallback }: SuggestionsErro
     </ErrorBoundary>
   );
 }
-
-// Hook-based error boundary for functional components
-export function useSuggestionsErrorHandler() {
-  const [error, setError] = React.useState<Error | null>(null);
-
-  const resetError = React.useCallback(() => {
-    setError(null);
-  }, []);
-
-  const handleError = React.useCallback((error: Error) => {
-    console.error('Suggestions error:', error);
-    setError(error);
-  }, []);
-
-  return { error, resetError, handleError };
-}

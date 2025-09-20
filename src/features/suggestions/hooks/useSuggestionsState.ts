@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useWorkoutGeneration } from "@/features/ai-workouts/hooks/use-workout-generation";
+import { useWorkoutGeneration } from "@/features/suggestions/hooks/useWorkoutGeneration";
 import type {
   GenerateWorkoutRequest,
   GeneratedWorkout,

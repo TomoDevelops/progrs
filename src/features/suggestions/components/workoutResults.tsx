@@ -17,7 +17,7 @@ import {
   Zap,
   Loader2
 } from "lucide-react";
-import type { GeneratedWorkout, GeneratedExercise } from "@/features/ai-workouts/schemas/ai-workout.schemas";
+import type { GeneratedWorkout, GeneratedExercise } from "@/features/suggestions/schemas/ai-workout.schemas";
 
 interface WorkoutResultsProps {
   workout: GeneratedWorkout;

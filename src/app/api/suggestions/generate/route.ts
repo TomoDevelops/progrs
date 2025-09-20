@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { getAuth } from "@/shared/config/auth/auth";
 import { ApiErrorResponse, ApiSuccessResponse } from "@/shared/types/api";
 import { headers } from "next/headers";
-import { aiWorkoutGenerationService } from "@/features/ai-workouts/services/ai-workout-generation.service";
-import { generateWorkoutRequestSchema } from "@/features/ai-workouts/schemas/ai-workout.schemas";
+import { aiWorkoutGenerationService } from "@/features/suggestions/services/ai-workout-generation.service";
+import { generateWorkoutRequestSchema } from "@/features/suggestions/schemas/ai-workout.schemas";
 import { rateLimit } from "@/shared/utils/rate-limit";
 
 import { v4 as uuidv4 } from "uuid";

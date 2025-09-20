@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import type { GenerateWorkoutRequest, GeneratedWorkout } from "@/features/ai-workouts/schemas/ai-workout.schemas";
+import type { GenerateWorkoutRequest, GeneratedWorkout } from "@/features/suggestions/schemas/ai-workout.schemas";
 
 interface UseWorkoutGenerationReturn {
   generateWorkout: (request: GenerateWorkoutRequest) => Promise<GeneratedWorkout>;
@@ -21,7 +21,7 @@ export function useWorkoutGeneration(): UseWorkoutGenerationReturn {
     try {
       const idempotencyKey = uuidv4();
       
-      const response = await fetch("/api/ai-workouts/generate", {
+      const response = await fetch("/api/suggestions/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

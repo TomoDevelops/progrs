@@ -10,7 +10,7 @@ import { Slider } from "@/shared/components/ui/slider";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { Plus, Loader2, RotateCcw } from "lucide-react";
-import { generateWorkoutRequestSchema, type GenerateWorkoutRequest, type EquipmentType, type FitnessLevel, type WorkoutType, type MuscleGroup } from "@/features/ai-workouts/schemas/ai-workout.schemas";
+import { generateWorkoutRequestSchema, type GenerateWorkoutRequest, type EquipmentType, type FitnessLevel, type WorkoutType, type MuscleGroup } from "@/features/suggestions/schemas/ai-workout.schemas";
 
 interface WorkoutFormProps {
   onSubmit: (data: GenerateWorkoutRequest) => void;

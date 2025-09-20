@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { getDb } from "@/shared/db/database";
 import { aiWorkoutBlueprints } from "@/shared/db/schema/app-schema";
 import { desc, eq } from "drizzle-orm";
-import { workoutBlueprintSchema } from "@/features/ai-workouts/schemas/ai-workout.schemas";
 
 export async function GET(request: NextRequest) {
   try {

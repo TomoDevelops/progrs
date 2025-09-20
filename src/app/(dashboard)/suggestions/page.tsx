@@ -5,9 +5,10 @@ export const fetchCache = "force-no-store";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getAuth } from "@/shared/config/auth/auth";
-import { DashboardContainer } from "@/features/dashboard/components/DashboardContainer";
 
-export default async function Home() {
+import { SuggestionsPage } from "@/features/suggestions/components/suggestions-page";
+
+export default async function Page() {
   // Check authentication server-side before rendering any UI
   const auth = getAuth();
   const session = await auth.api.getSession({
@@ -19,5 +20,5 @@ export default async function Home() {
     redirect("/login");
   }
 
-  return <DashboardContainer />;
+  return <SuggestionsPage />;
 }

@@ -23,6 +23,7 @@ import {
   DraggableExerciseList,
   type DraggableExercise,
 } from "@/shared/components/DraggableExerciseList";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
 interface WorkoutSessionContentProps {
   session: WorkoutSession;
@@ -263,12 +264,16 @@ export function WorkoutSessionContent({
         </div>
 
         {/* Exercise Progress Tracker with Drag & Drop */}
-        <div className="mb-6">
-          <h2 className="mb-4 text-lg font-semibold">Exercise Progress</h2>
-          <DraggableExerciseList
-            exercises={draggableExercises}
-            onReorder={handleExerciseReorder}
-            renderExercise={(exercise) => {
+        <ErrorBoundary
+          title="Exercise Progress Error"
+          queryKey={["workout-session", "exercise-progress"]}
+        >
+          <div className="mb-6">
+            <h2 className="mb-4 text-lg font-semibold">Exercise Progress</h2>
+            <DraggableExerciseList
+              exercises={draggableExercises}
+              onReorder={handleExerciseReorder}
+              renderExercise={(exercise) => {
               const originalIndex = exercise.originalIndex as number;
               const sessionExercise = session.exercises[originalIndex];
               const isCurrentExercise = originalIndex === currentExerciseIndex;
@@ -309,19 +314,25 @@ export function WorkoutSessionContent({
                   </div>
                 </div>
               );
-            }}
-            showDragHandle={true}
-            className="space-y-3"
-          />
-        </div>
+              }}
+              showDragHandle={true}
+              className="space-y-3"
+            />
+          </div>
+        </ErrorBoundary>
 
         {/* Current Exercise Detail */}
         {currentExercise && (
-          <ExerciseCard
-            exercise={currentExercise}
-            onUpdateSet={handleSetUpdate}
-            isUpdatingSet={isUpdatingSet}
-          />
+          <ErrorBoundary
+            title="Exercise Detail Error"
+            queryKey={["workout-session", "current-exercise", currentExercise.id]}
+          >
+            <ExerciseCard
+              exercise={currentExercise}
+              onUpdateSet={handleSetUpdate}
+              isUpdatingSet={isUpdatingSet}
+            />
+          </ErrorBoundary>
         )}
 
         {/* Navigation Controls */}

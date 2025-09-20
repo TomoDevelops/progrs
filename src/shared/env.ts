@@ -8,7 +8,7 @@ function must(name: string): string {
 
 export function getEnv() {
   return {
-    APP_NAME: must("APP_NAME"),
+    APP_NAME: process.env.APP_NAME ?? "Progrs",
     APP_URL: must("APP_URL"),
     DATABASE_URL: must("DATABASE_URL"),
     BETTER_AUTH_SECRET: must("BETTER_AUTH_SECRET"),
